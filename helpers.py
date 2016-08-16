@@ -14,6 +14,7 @@ import os
 import sys
 import time
 import datetime
+import random
 #import matplotlib.pyplot as mpl
 
 def getOrdinalStr(inInt):
@@ -100,8 +101,12 @@ def doubleGauss(x,par):
   #return meanG1 + widthG1*x[0]
   
 def getXBinHist(inHist, xBin):
+  """
+  Makes a TH1 hisogram from a TH2
+  A vertical slice of a 2D histo
+  """
   outHist = inHist.ProjectionY()
-  outHist.Clear()
+  outHist.Reset()
   outHist.SetName(inHist.GetName()+"XSliceBin"+str(xBin))
   outHist.Sumw2()
   nBins = outHist.GetXaxis().GetNbins()
@@ -111,11 +116,15 @@ def getXBinHist(inHist, xBin):
   return outHist
 
 def getYBinHist(inHist, yBin):
+  """
+  Makes a TH1 hisogram from a TH2
+  A horizontal slice of a 2D histo
+  """
   outHist = inHist.ProjectionX()
-  outHist.Clear()
+  outHist.Reset()
   outHist.SetName(inHist.GetName()+"YSliceBin"+str(yBin))
   outHist.Sumw2()
-  nBins = outHist.GetYaxis().GetNbins()
+  nBins = outHist.GetXaxis().GetNbins()
   for i in range(0,nBins+2):
     outHist.SetBinContent(i,inHist.GetBinContent(i,yBin))
     outHist.SetBinError(i,inHist.GetBinError(i,yBin))
@@ -216,9 +225,15 @@ def setStyle():
   
 setStyle()
 
-def setHistTitles(hist,xlabel,ylabel):
+def setHistTitles(hist,xlabel,ylabel,zlabel=None):
     hist.GetXaxis().SetTitle(xlabel)
     hist.GetYaxis().SetTitle(ylabel)
+    if zlabel:
+      hist.GetZaxis().SetTitle(zlabel)
+
+def setHistRange(hist,xMin,xMax,yMin,yMax):
+    hist.GetXaxis().SetRangeUser(xMin,xMax)
+    hist.GetYaxis().SetRangeUser(yMin,yMax)
 
 def makeWeightHist(f1,canvas,leg):
   firstHist = True
@@ -1156,16 +1171,31 @@ class PlotOfSlices:
 
 def getIntegralHist(hist,setErrors=True):
   result = hist.Clone(hist.GetName()+"_Integral")
-  nBins = result.GetNbinsX()
-  for i in range(nBins+1):
-    sumw = 0.0
-    sumw2 = 0.0
-    for j in range(i,nBins+2):
-      sumw += result.GetBinContent(j)
-      sumw2 += (result.GetBinError(j))**2
-    result.SetBinContent(i,sumw)
-    if setErrors:
-        result.SetBinError(i,sumw2**0.5)
+  if hist.InheritsFrom("TH2"):
+    nBinsX = result.GetNbinsX()
+    nBinsY = result.GetNbinsY()
+    for iX in range(nBinsX+1):
+      for iY in range(nBinsY+1):
+        sumw = 0.0
+        sumw2 = 0.0
+        for jX in range(iX,nBinsX+2):
+          for jY in range(iY,nBinsY+2):
+            sumw += result.GetBinContent(jX,jY)
+            sumw2 += (result.GetBinError(jX,jY))**2
+        result.SetBinContent(iX,iY,sumw)
+        if setErrors:
+            result.SetBinError(iX,iY,sumw2**0.5)
+  else:
+    nBins = result.GetNbinsX()
+    for i in range(nBins+1):
+      sumw = 0.0
+      sumw2 = 0.0
+      for j in range(i,nBins+2):
+        sumw += result.GetBinContent(j)
+        sumw2 += (result.GetBinError(j))**2
+      result.SetBinContent(i,sumw)
+      if setErrors:
+          result.SetBinError(i,sumw2**0.5)
   return result
 
 def hist2to1(hist):
@@ -1385,7 +1415,72 @@ def getHistMax(hist):
   iBin = hist.GetMaximumBin()
   result = hist.GetBinContent(iBin)
   return result
-  
+
+def makeStdAxisHist(histList,logy=False,freeTopSpace=0.5,xlim=[],ylim=[]):
+  assert(len(histList)>0)
+  assert(len(xlim)==0 or len(xlim)==2)
+  assert(len(ylim)==0 or len(ylim)==2)
+  multiplier = 1./(1.-freeTopSpace)
+  yMin = 0.
+  yMax = 0.
+  xMin = 1e15
+  xMax = -1e15
+  for hist in histList:
+    histMax = getHistMax(hist)
+    yMax = max(yMax,histMax)
+    nBins = hist.GetNbinsX()
+    xMax = max(xMax,hist.GetXaxis().GetBinUpEdge(nBins))
+    xMin = min(xMin,hist.GetBinLowEdge(1))
+  if yMax == 0.:
+    yMax = 1.
+  if logy:
+    yMin = 10**(-1)
+    yMax = (math.log10(yMax) + 1.)*multiplier - 1.
+    yMax = 10**yMax
+  else:
+    yMax = yMax*multiplier
+    if yMax == 0.:
+      yMax = 1.
+  if len(xlim)==2:
+    xMin = xlim[0]
+    xMax = xlim[1]
+  if len(ylim)==2:
+    yMin = ylim[0]
+    yMax = ylim[1]
+  axisHist = root.TH2F("axisHist"+str(random.randint(1000,1000000)),"",1,xMin,xMax,1,yMin,yMax)
+  return axisHist
+
+def getLogBins(nBins,xMin,xMax):
+  xMinLog = math.log10(xMin)
+  delta = (math.log10(xMax)-xMinLog)/nBins
+  return [10**(xMinLog + x*delta) for x in range(nBins+1)]
+
+def drawNormalLegend(hists,labels,option="l"):
+  assert(len(hists)==len(labels))
+  #leg = root.TLegend(0.55,0.6,0.91,0.89)
+  #leg = root.TLegend(0.35,0.6,0.91,0.89)
+  leg = root.TLegend(0.40,0.7,0.91,0.89)
+  leg.SetLineColor(root.kWhite)
+  for hist,label in zip(hists,labels):
+    leg.AddEntry(hist,label,option)
+  leg.Draw()
+  return leg
+
+def setupCOLZFrame(pad,reset=False):
+   if reset:
+     pad.SetRightMargin(gStyle.GetPadRightMargin())
+   else:
+     pad.SetRightMargin(0.15)
+
+def normToBinWidth(hist):
+  xaxis = hist.GetXaxis()
+  nBins = xaxis.GetNbins()
+  for i in range(1,nBins+1):
+    binContent = hist.GetBinContent(i)
+    binWidth = hist.GetBinWidth(i)
+    hist.SetBinContent(i,binContent/binWidth)
+  return hist
+
 if __name__ == "__main__":
 
   root.gROOT.SetBatch(True)
