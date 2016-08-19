@@ -22,28 +22,36 @@ def setupCOLZFrame(pad,reset=False):
 c = root.TCanvas()
 
 fold = root.TFile("05_01_00/mu_dEdxAllTracks.root")
-fnew = root.TFile("05_12_01_Reco2Dnew/mup_dEdxAllTracks.root")
+fnew = root.TFile("isoInTPC.bak/isoInTPC_mup_v3_dEdxAllTracks.root")
+fnewNoFile = root.TFile("isoInTPC/isoInTPC_mup_v3_dEdxAllTracksNoFile.root")
 
 hist2dold = fold.Get("dEdxAllTracks/TruePDG-13plane12D")
 hist2dnew = fnew.Get("dEdxAllTracks/TruePDG-13plane12D")
+#hist2dnew = fnew.Get("dEdxAllTracksNoFile/TruePDG-13plane12D")
 
 hist1dold = fold.Get("dEdxAllTracks/TruePDG-13plane1")
 hist1dnew = fnew.Get("dEdxAllTracks/TruePDG-13plane1")
+hist1dnewNoFile = fnewNoFile.Get("dEdxAllTracksNoFile/TruePDG-13plane1")
+hist1dlist = [hist1dold,hist1dnew,hist1dnewNoFile]
+hist1dlabels = ["Andrew's 5_01_00", "Justin's 5_12_01","Cleaned Module"]
+
 
 hist1dold.UseCurrentStyle()
 hist1dnew.UseCurrentStyle()
+hist1dnewNoFile.UseCurrentStyle()
 hist1dold.SetLineColor(root.kGreen+2)
 hist1dnew.SetLineColor(root.kBlue+2)
-#setHistTitles(hist1dold,"dE/dx [MeV/cm]","Counts")
+hist1dnewNoFile.SetLineColor(root.kRed+2)
 normalizeHist(hist1dold)
 normalizeHist(hist1dnew)
-setHistTitles(hist1dold,"dE/dx [MeV/cm]","Arbitrary units")
-
-leg = drawNormalLegend([hist1dold,hist1dnew],["Andrew's 5_01_00", "Justin's 5_12_01 RecoMC.fcl"])
-
-hist1dold.Draw("")
-hist1dnew.Draw("same")
-
+normalizeHist(hist1dnewNoFile)
+axisHist = makeStdAxisHist(hist1dlist,freeTopSpace=0.05,xlim=[0,40])
+setHistTitles(axisHist,"dE/dx [MeV/cm]","Arbitrary units")
+axisHist.Draw()
+for hist in hist1dlist:
+  hist.Draw("same")
+leg = drawNormalLegend(hist1dlist,hist1dlabels)
+drawStandardCaptions(c,"#mu^{+} simulation")
 leg.Draw()
 
 c.SaveAs("dEdx.png")
