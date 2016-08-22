@@ -7,6 +7,7 @@ import csv
 import glob
 from math import exp
 from math import sqrt
+from math import log
 from math import log10
 import math
 import array
