@@ -4,8 +4,6 @@ import ROOT as root
 from helpers import *
 root.gROOT.SetBatch(True)
 
-from rootpy.plotting import Hist, Hist2D, Canvas, Graph
-
 """
 *Br    0 :resRange  : vector<float>                                          *
 *Br    1 :pitchCorr : vector<float>                                          *
@@ -29,9 +27,8 @@ def makeLikelihood(fileConfig,binningArg=[325,0.,26.,200,0.,100.],evalFrac=0.1):
   tree.Draw("dEdx_pitchCorr:resRange >> {0}".format(histname),cuts,"",nEntries,nSkip)
 
   setHistTitles(hist,"Residual Range [cm]","dE/dx [MeV/cm]")
-  setHistRange(hist,0,10,0,20)
   hist.Draw("colz")
-  drawStandardCaptions(c,"Likelihood for {}".format(fileConfig["title"]),captionright1="Entries: {0:.0f}".format(hist.GetEntries()))
+  drawStandardCaptions(c,"{}".format(fileConfig["title"]),captionright1="Events: {0:.0f}".format(nEntries-nSkip),captionright2="Entries: {0:.0f}".format(hist.GetEntries()))
   plotfn = "dEdxVrange_{}.png".format(fileConfig['name'])
   c.SaveAs(plotfn)
 
@@ -45,10 +42,10 @@ def makeLikelihood(fileConfig,binningArg=[325,0.,26.,200,0.,100.],evalFrac=0.1):
   if histIntegral != 0.:
     hist.Scale(1./histIntegral)
 
-
   setHistTitles(hist,"Residual Range [cm]","dE/dx [MeV/cm]")
+  setHistRange(hist,0,10,0,20)
   hist.Draw("colz")
-  drawStandardCaptions(c,"Likelihood for {}".format(fileConfig["title"]),captionright1="Entries: {0:.0f}".format(hist.GetEntries()))
+  drawStandardCaptions(c,"Likelihood for {}".format(fileConfig["title"]),captionright1="Events: {0:.0f}".format(nEntries-nSkip),captionright2="Entries: {0:.0f}".format(hist.GetEntries()))
   plotfn = "LH_{}.png".format(fileConfig['name'])
   c.SaveAs(plotfn)
   setupCOLZFrame(c,True)
@@ -72,11 +69,11 @@ if __name__ == "__main__":
   evalFrac = 0.1
   fileConfigs = [
     {
-      'fn': "isoInTPC/isoInTPC_mup_v3_dEdxAllTracksNoFile.root",
-      'pdg': -13,
-      'name': "mup",
-      'title': "#mu^{+}",
-      'color': root.kRed,
+      'fn': "isoInTPC/isoInTPC_p_v3_dEdxAllTracksNoFile.root",
+      'pdg': 2212,
+      'name': "p",
+      'title': "p",
+      'color': root.kGreen+1,
     },
     {
       'fn': "isoInTPC/isoInTPC_pip_v3_dEdxAllTracksNoFile.root",
@@ -86,11 +83,11 @@ if __name__ == "__main__":
       'color': root.kBlack,
     },
     {
-      'fn': "isoInTPC/isoInTPC_p_v3_dEdxAllTracksNoFile.root",
-      'pdg': 2212,
-      'name': "p",
-      'title': "p",
-      'color': root.kGreen+1,
+      'fn': "isoInTPC/isoInTPC_mup_v3_dEdxAllTracksNoFile.root",
+      'pdg': -13,
+      'name': "mup",
+      'title': "#mu^{+}",
+      'color': root.kRed,
     },
     {
       'fn': "isoInTPC/isoInTPC_kp_v3_dEdxAllTracksNoFile.root",
@@ -113,7 +110,8 @@ if __name__ == "__main__":
   for fileConfig in fileConfigs:
     likelihoods[fileConfig['name']] = makeLikelihood(fileConfig,binningArg,evalFrac)
   pipLHRs = [Hist(100,0,2) for f in fileConfigs]
-  for fileConfig,pipLHR in zip(fileConfigs,pipLHRs):
+  pipLHDiffs = [Hist(50,-100,100) for f in fileConfigs]
+  for fileConfig,pipLHR,pipLHDiff in zip(fileConfigs,pipLHRs,pipLHDiffs):
     tree = fileConfig['tree']
     hists = []
     labels = []
@@ -157,6 +155,7 @@ if __name__ == "__main__":
         pipLHR.Fill(1e15)
       else:
         pipLHR.Fill(llhpip/llhp)
+      pipLHDiff.Fill(llhpip-llhp)
     axisHist = makeStdAxisHist(hists)
     setHistTitles(axisHist,"-log(L)","Events/bin")
     axisHist.Draw()
@@ -178,14 +177,28 @@ if __name__ == "__main__":
     saveName = "LHRatioCompare_{0}".format(fileConfig['name'])
     c.SaveAs(saveName+".png")
 
+  # pipLLH differences
+  for h, fileConfig in zip(pipLHDiffs,fileConfigs):
+    h.UseCurrentStyle()
+    h.SetLineColor(fileConfig['color'])
+  axisHist = makeStdAxisHist(pipLHDiffs,freeTopSpace=0.35)
+  setHistTitles(axisHist,"log(L_{#pi^{+}})-log(L_{p})","Events/bin")
+  axisHist.Draw()
+  for h in reversed(pipLHDiffs):
+    h.Draw("histsame")
+  leg = drawNormalLegend(pipLHDiffs,["{} MC, {} events".format(x['title'],x['nSkip']) for x in fileConfigs])
+  c.SaveAs("LLHDiff.png")
+  c.SaveAs("LLHDiff.pdf")
+
   # pipLHRs
   for h, fileConfig in zip(pipLHRs,fileConfigs):
     h.UseCurrentStyle()
     h.SetLineColor(fileConfig['color'])
-  axisHist = makeStdAxisHist(pipLHRs)
+  axisHist = makeStdAxisHist(pipLHRs,freeTopSpace=0.35)
   setHistTitles(axisHist,"log(L_{#pi^{+}})/log(L_{p})","Events/bin")
   axisHist.Draw()
-  for h in pipLHRs:
+  for h in reversed(pipLHRs):
     h.Draw("histsame")
-  leg = drawNormalLegend(pipLHRs,["{} MC".format(x['title']) for x in fileConfigs])
+  leg = drawNormalLegend(pipLHRs,["{} MC, {} events".format(x['title'],x['nSkip']) for x in fileConfigs])
   c.SaveAs("LLHR.png")
+  c.SaveAs("LLHR.pdf")
