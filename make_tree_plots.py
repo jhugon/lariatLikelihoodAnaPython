@@ -16,6 +16,11 @@ root.gROOT.SetBatch(True)
 """
 
 def makeLikelihood(fileConfig,iPlane,binningArg=[325,0.,26.,200,0.,100.],evalFrac=0.1):
+  ## Compute bin width from binning arg
+  binWidthX = (float(binningArg[2])-binningArg[1])/binningArg[0]
+  binWidthY = (float(binningArg[5])-binningArg[4])/binningArg[3]
+  binCaption = "Bin size: {0:.1f} cm #times {1:.1f} MeV/cm".format(binWidthX,binWidthY)
+
   setupCOLZFrame(c)
   tree = fileConfig['tree']
   nEntries = tree.GetEntries()
@@ -30,7 +35,7 @@ def makeLikelihood(fileConfig,iPlane,binningArg=[325,0.,26.,200,0.,100.],evalFra
 
   setHistTitles(hist,"Residual Range [cm]","dE/dx [MeV/cm]")
   hist.Draw("colz")
-  drawStandardCaptions(c,"{}, plane {}".format(fileConfig["caption"],iPlane),captionright1="Events: {0:.0f}".format(nEntries-nSkip),captionright2="Entries: {0:.0f}".format(hist.GetEntries()))
+  drawStandardCaptions(c,"{}, plane {}".format(fileConfig["caption"],iPlane),captionright2="Events: {0:.0f}".format(nEntries-nSkip),captionright3="Entries: {0:.0f}".format(hist.GetEntries()),captionright1=binCaption)
   plotfn = "dEdxVrange_{}_plane{}.png".format(fileConfig['name'],iPlane)
   c.SaveAs(plotfn)
 
@@ -49,7 +54,7 @@ def makeLikelihood(fileConfig,iPlane,binningArg=[325,0.,26.,200,0.,100.],evalFra
   setHistTitles(likelihood,"Residual Range [cm]","dE/dx [MeV/cm]")
   setHistRange(likelihood,0,10,0,20)
   likelihood.Draw("colz")
-  drawStandardCaptions(c,"Likelihood for {}, plane {}".format(fileConfig["title"],iPlane),captionright1="Events: {0:.0f}".format(nEntries-nSkip),captionright2="Entries: {0:.0f}".format(likelihood.GetEntries()))
+  drawStandardCaptions(c,"Likelihood for {}, plane {}".format(fileConfig["title"],iPlane),captionright2="Events: {0:.0f}".format(nEntries-nSkip),captionright3="Entries: {0:.0f}".format(likelihood.GetEntries()),captionright1=binCaption)
   plotfn = "LH_{}_plane{}.png".format(fileConfig['name'],iPlane)
   c.SaveAs(plotfn)
   setupCOLZFrame(c,True)
@@ -114,6 +119,9 @@ if __name__ == "__main__":
     },
   ]
   
+  ## Compute bin width from binning arg
+  binWidthX = (float(binningArg[2])-binningArg[1])/binningArg[0]
+  binWidthY = (float(binningArg[5])-binningArg[4])/binningArg[3]
   
   c = root.TCanvas()
   for fileConfig in fileConfigs:
@@ -132,7 +140,7 @@ if __name__ == "__main__":
       hist.Write()
     ## Now Save Histogram File
     ## Now Evaluate
-    pipLHDiffs = [Hist(100,-200,200) for f in fileConfigs]
+    pipLHDiffs = [Hist(200,-1000,1000) for f in fileConfigs]
     for fileConfig,pipLHDiff in zip(fileConfigs,pipLHDiffs):
       tree = fileConfig['tree']
       hists = []
