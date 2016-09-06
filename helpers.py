@@ -1957,7 +1957,9 @@ def Hist(*args,**kargs):
   """
   func = root.TH1F
   if "TH1D" in kargs and kargs["TH1D"]:
-    func = rooot.TH1D
+    func = root.TH1D
+  if "TEfficiency" in kargs and kargs["TEfficiency"]:
+    func = root.TEfficiency
   name = uuid.uuid1().hex
   hist = None
   if len(args) == 1 and type(args[0]) == list:
@@ -1979,6 +1981,8 @@ def Hist2D(*args,**kargs):
   func = root.TH2F
   if "TH2D" in kargs and kargs["TH2D"]:
     func = root.TH2D
+  if "TEfficiency" in kargs and kargs["TEfficiency"]:
+    func = root.TEfficiency
   name = uuid.uuid1().hex
   hist = None
   if len(args) == 2 and type(args[0]) == list and type(args[1]) == list:

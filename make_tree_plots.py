@@ -72,6 +72,41 @@ def evalLogLikelihood(likelihoodHist,tree):
     result += log(lh)
   return result
 
+def makeLLHREROCGraph(likelihoodHistNum,likelihoodHistDenom,treeX,treeY,nMaxX,nMaxY):
+  valuesX = []
+  for iEntry in range(nMaxX):
+    treeX.GetEntry(iEntry)
+    llhNum = evalLogLikelihood(likelihoodHistNum,treeX)
+    llhDenom = evalLogLikelihood(likelihoodHistDenom,treeX)
+    llhr = llhNum-llhDenom
+    valuesX.append(llhr)
+  valuesX.sort()
+  valuesY = []
+  for iEntry in range(nMaxY):
+    treeY.GetEntry(iEntry)
+    llhNum = evalLogLikelihood(likelihoodHistNum,treeY)
+    llhDenom = evalLogLikelihood(likelihoodHistDenom,treeY)
+    llhr = llhNum-llhDenom
+    valuesY.append(llhr)
+  valuesY.sort()
+  valuesY.reverse()
+  #print min(valuesX), max(valuesX)
+  #print min(valuesY), max(valuesY)
+  result = root.TGraph()
+  for iX in range(nMaxX):
+    effX = iX/float(nMaxX)
+    x = valuesX[iX]
+    #print x
+    effY = 0.
+    for iY in range(nMaxY):
+      y = valuesY[iY]
+      #print "    ",y
+      if y <= x:
+        effY = iY/float(nMaxY)
+        break
+    result.SetPoint(iX,effX,effY)
+  return result
+
 if __name__ == "__main__":
 
   binningArg = [325,0.,26.,200,0.,100.]
@@ -191,6 +226,19 @@ if __name__ == "__main__":
     leg = drawNormalLegend(pipLHDiffs,["{} MC, {} events".format(x['title'],x['nSkip']) for x in fileConfigs])
     drawStandardCaptions(c,"Plane {}".format(iPlane))
     saveName = "LLHR_plane{0}".format(iPlane)
+    c.SaveAs(saveName+".png")
+    c.SaveAs(saveName+".pdf")
+
+    ###############################################
+    # ROC Curves
+    pipFileConfig = [x for x in fileConfigs if x['name']=='pip'][0]
+    pFileConfig = [x for x in fileConfigs if x['name']=='p'][0]
+    graph = makeLLHREROCGraph(likelihoods['pip'],likelihoods['p'],pipFileConfig['tree'],pFileConfig['tree'],pipFileConfig['nSkip'],pFileConfig['nSkip'])
+    axisHist = Hist2D(1,0,1.1,1,0,1.1)
+    setHistTitles(axisHist,"#pi^{+} Efficiency","Proton Rejection")
+    axisHist.Draw()
+    graph.Draw("LP")
+    saveName = "ROC_pip_p_plane{0}".format(iPlane)
     c.SaveAs(saveName+".png")
     c.SaveAs(saveName+".pdf")
 
