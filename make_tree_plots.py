@@ -30,7 +30,7 @@ def makeLikelihood(fileConfig,iPlane,binningArg=[325,0.,26.,200,0.,100.],evalFra
 
   setHistTitles(hist,"Residual Range [cm]","dE/dx [MeV/cm]")
   hist.Draw("colz")
-  drawStandardCaptions(c,"{}".format(fileConfig["title"]),captionright1="Events: {0:.0f}".format(nEntries-nSkip),captionright2="Entries: {0:.0f}".format(hist.GetEntries()))
+  drawStandardCaptions(c,"{}, plane {}".format(fileConfig["caption"],iPlane),captionright1="Events: {0:.0f}".format(nEntries-nSkip),captionright2="Entries: {0:.0f}".format(hist.GetEntries()))
   plotfn = "dEdxVrange_{}_plane{}.png".format(fileConfig['name'],iPlane)
   c.SaveAs(plotfn)
 
@@ -49,7 +49,7 @@ def makeLikelihood(fileConfig,iPlane,binningArg=[325,0.,26.,200,0.,100.],evalFra
   setHistTitles(likelihood,"Residual Range [cm]","dE/dx [MeV/cm]")
   setHistRange(likelihood,0,10,0,20)
   likelihood.Draw("colz")
-  drawStandardCaptions(c,"Likelihood for {}".format(fileConfig["title"]),captionright1="Events: {0:.0f}".format(nEntries-nSkip),captionright2="Entries: {0:.0f}".format(likelihood.GetEntries()))
+  drawStandardCaptions(c,"Likelihood for {}, plane {}".format(fileConfig["title"],iPlane),captionright1="Events: {0:.0f}".format(nEntries-nSkip),captionright2="Entries: {0:.0f}".format(likelihood.GetEntries()))
   plotfn = "LH_{}_plane{}.png".format(fileConfig['name'],iPlane)
   c.SaveAs(plotfn)
   setupCOLZFrame(c,True)
@@ -132,14 +132,14 @@ if __name__ == "__main__":
       hist.Write()
     ## Now Save Histogram File
     ## Now Evaluate
-    pipLHDiffs = [Hist(50,-100,100) for f in fileConfigs]
+    pipLHDiffs = [Hist(100,-200,200) for f in fileConfigs]
     for fileConfig,pipLHDiff in zip(fileConfigs,pipLHDiffs):
       tree = fileConfig['tree']
       hists = []
       labels = []
       labelsRatio = []
       for fileConfig2 in fileConfigs:
-        hist = Hist(20,0,400)
+        hist = Hist(100,0.,5000)
         hist.UseCurrentStyle()
         color = fileConfig2['color']
         hist.SetLineColor(color)
@@ -152,13 +152,22 @@ if __name__ == "__main__":
         llhpip = evalLogLikelihood(likelihoods['pip'],tree)
         llhp = evalLogLikelihood(likelihoods['p'],tree)
         pipLHDiff.Fill(llhpip-llhp)
+        for hist, fileConfig2 in zip(hists,fileConfigs):
+          llhVal = 0.
+          if fileConfig2['name'] == 'pip':
+            llhVal = llhpip
+          elif fileConfig2['name'] == 'p':
+            llhVal = llhp
+          else:
+            llhVal = evalLogLikelihood(likelihoods[fileConfig2['name']],tree)
+          hist.Fill(-llhVal)
       axisHist = makeStdAxisHist(hists)
       setHistTitles(axisHist,"-log(L)","Events/bin")
       axisHist.Draw()
       for hist in hists:
         hist.Draw("histsame")
       leg = drawNormalLegend(hists,labels)
-      drawStandardCaptions(c,"{} MC Sample".format(fileConfig['title']))
+      drawStandardCaptions(c,"{}, plane {}".format(fileConfig['caption'], iPlane))
       saveName = "LHCompare_{0}_plane{1}".format(fileConfig['name'],iPlane)
       c.SaveAs(saveName+".png")
     
@@ -172,6 +181,7 @@ if __name__ == "__main__":
     for h in reversed(pipLHDiffs):
       h.Draw("histsame")
     leg = drawNormalLegend(pipLHDiffs,["{} MC, {} events".format(x['title'],x['nSkip']) for x in fileConfigs])
+    drawStandardCaptions(c,"Plane {}".format(iPlane))
     saveName = "LLHR_plane{0}".format(iPlane)
     c.SaveAs(saveName+".png")
     c.SaveAs(saveName+".pdf")
