@@ -73,7 +73,8 @@ if __name__ == "__main__":
   evalFrac = 0.1
   fileConfigs = [
     {
-      'fn': "isoInTPC/isoInTPC_p_v3_dEdxAllTracksNoFile.root",
+      #'fn': "isoInTPC_v5files/isoInTPC_p_v5_dEdxAllTracksNoFile.root",
+      'fn': "isoInTPC_v5filesNew/isoInTPC_p_v5_dEdxAllTracksNoFileNew.root",
       'pdg': 2212,
       'name': "p",
       'title': "p",
@@ -82,7 +83,8 @@ if __name__ == "__main__":
       'nPlanes': 2,
     },
     {
-      'fn': "isoInTPC/isoInTPC_pip_v3_dEdxAllTracksNoFile.root",
+      #'fn': "isoInTPC_v5files/isoInTPC_pip_v5_dEdxAllTracksNoFile.root",
+      'fn': "isoInTPC_v5filesNew/isoInTPC_pip_v5_dEdxAllTracksNoFileNew.root",
       'pdg': 211,
       'name': "pip",
       'title': "#pi^{+}",
@@ -91,7 +93,8 @@ if __name__ == "__main__":
       'nPlanes': 2,
     },
     {
-      'fn': "isoInTPC/isoInTPC_mup_v3_dEdxAllTracksNoFile.root",
+      #'fn': "isoInTPC_v5files/isoInTPC_mup_v5_dEdxAllTracksNoFile.root",
+      'fn': "isoInTPC_v5filesNew/isoInTPC_mup_v5_dEdxAllTracksNoFileNew.root",
       'pdg': -13,
       'name': "mup",
       'title': "#mu^{+}",
@@ -100,7 +103,8 @@ if __name__ == "__main__":
       'nPlanes': 2,
     },
     {
-      'fn': "isoInTPC/isoInTPC_kp_v3_dEdxAllTracksNoFile.root",
+      #'fn': "isoInTPC_v5files/isoInTPC_kp_v5_dEdxAllTracksNoFile.root",
+      'fn': "isoInTPC_v5filesNew/isoInTPC_kp_v5_dEdxAllTracksNoFileNew.root",
       'pdg': 321,
       'name': "kp",
       'title': "K^{+}",
@@ -133,7 +137,6 @@ if __name__ == "__main__":
       tree = fileConfig['tree']
       hists = []
       labels = []
-      histsRatio = []
       labelsRatio = []
       for fileConfig2 in fileConfigs:
         hist = Hist(20,0,400)
@@ -143,30 +146,9 @@ if __name__ == "__main__":
         hist.SetMarkerColor(color)
         hists.append(hist)
         labels.append("LH to be {}".format(fileConfig2['title']))
-        if fileConfig2['name'] != fileConfig['name']:
-          hist = Hist(100,0,2)
-          hist.UseCurrentStyle()
-          color = fileConfig2['color']
-          hist.SetLineColor(color)
-          hist.SetMarkerColor(color)
-          histsRatio.append(hist)
-          labelsRatio.append("LH Ratio {0}/{1}".format(fileConfig['title'],fileConfig2['title']))
-        else:
-          histsRatio.append(None)
       assert(fileConfig['nSkip'] <= tree.GetEntries())
       for iEntry in range(fileConfig['nSkip']):
         tree.GetEntry(iEntry)
-        #numeratorLH = evalLogLikelihood(likelihoods[fileConfig['name']],tree)
-        #for hist, histRatio, fileConfig2 in zip(hists,histsRatio,fileConfigs):
-        #  likelihood = likelihoods[fileConfig2['name']]
-        #  likelihoodTitle = fileConfig2['title']
-        #  logLikelihoodVal = evalLogLikelihood(likelihood,tree)
-        #  hist.Fill(-logLikelihoodVal)
-        #  if histRatio:
-        #    if logLikelihoodVal == 0.:
-        #      hist.Fill(1e15)
-        #    else:
-        #      histRatio.Fill(numeratorLH/logLikelihoodVal)
         llhpip = evalLogLikelihood(likelihoods['pip'],tree)
         llhp = evalLogLikelihood(likelihoods['p'],tree)
         pipLHDiff.Fill(llhpip-llhp)
@@ -180,17 +162,6 @@ if __name__ == "__main__":
       saveName = "LHCompare_{0}_plane{1}".format(fileConfig['name'],iPlane)
       c.SaveAs(saveName+".png")
     
-      histsRatio = [x for x in histsRatio if x]
-      axisHist = makeStdAxisHist(histsRatio)
-      setHistTitles(axisHist,"log(L_{{{0}}})/Log(L_{{X}})".format(fileConfig['title']),"Events/bin")
-      axisHist.Draw()
-      for hist in histsRatio:
-        hist.Draw("histsame")
-      leg = drawNormalLegend(histsRatio,labelsRatio)
-      drawStandardCaptions(c,"{} MC Sample".format(fileConfig['title']))
-      saveName = "LHRatioCompare_{0}_plane{1}".format(fileConfig['name'],iPlane)
-      c.SaveAs(saveName+".png")
-
     # pipLLH differences
     for h, fileConfig in zip(pipLHDiffs,fileConfigs):
       h.UseCurrentStyle()
@@ -201,24 +172,24 @@ if __name__ == "__main__":
     for h in reversed(pipLHDiffs):
       h.Draw("histsame")
     leg = drawNormalLegend(pipLHDiffs,["{} MC, {} events".format(x['title'],x['nSkip']) for x in fileConfigs])
-    saveName = "LLHDiff_plane{0}".format(iPlane)
+    saveName = "LLHR_plane{0}".format(iPlane)
     c.SaveAs(saveName+".png")
     c.SaveAs(saveName+".pdf")
 
-    ##############################################3
-    # Investigate track pitch
-    histConfigs = [
-      {
-        'name': "pitch_plane{0}".format(iPlane),
-        'xtitle': "Pitch [cm]",
-        'ytitle': "Entries/bin",
-        #'binning': [100,0,25],
-        'binning': getLogBins(100,0.4,1e4),
-        'var': "pitchCorr",
-        'cuts': "",
-        'logx': True,
-        'logy': True,
-      },
-    ]
-    plotOneHistOnePlot(fileConfigs,histConfigs,c,"dEdxAllTracksNoFile/tree")
+    ###############################################3
+    ## Investigate track pitch
+    #histConfigs = [
+    #  {
+    #    'name': "pitch_plane{0}".format(iPlane),
+    #    'xtitle': "Pitch [cm]",
+    #    'ytitle': "Entries/bin",
+    #    #'binning': [100,0,25],
+    #    'binning': getLogBins(100,0.4,1e4),
+    #    'var': "pitchCorr",
+    #    'cuts': "",
+    #    'logx': True,
+    #    'logy': True,
+    #  },
+    #]
+    #plotOneHistOnePlot(fileConfigs,histConfigs,c,"dEdxAllTracksNoFile/tree")
   outfile.Close()
