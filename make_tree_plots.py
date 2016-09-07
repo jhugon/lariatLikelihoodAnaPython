@@ -60,39 +60,41 @@ def makeLikelihood(fileConfig,iPlane,binningArg=[325,0.,26.,200,0.,100.],evalFra
   setupCOLZFrame(c,True)
   return hist, likelihood
 
-def evalLogLikelihood(likelihoodHist,tree):
+def evalLogLikelihood(likelihoodHist,tree,iPlane):
   """
   Evaluates the log-likelihood for a given track
   You must have called tree.GetEntry(i) for the entry you want
   """
   result = 0.
-  for rr, dEdx in zip(tree.resRange,tree.dEdx_pitchCorr):
-    iBin = likelihoodHist.FindBin(rr,dEdx)
-    lh = likelihoodHist.GetBinContent(iBin)
-    result += log(lh)
+  for rr, dEdx, plane in zip(tree.resRange,tree.dEdx_pitchCorr,tree.plane):
+    if iPlane == tree.plane:
+      iBin = likelihoodHist.FindBin(rr,dEdx)
+      lh = likelihoodHist.GetBinContent(iBin)
+      result += log(lh)
   return result
 
-def makeLLHREROCGraph(likelihoodHistNum,likelihoodHistDenom,treeX,treeY,nMaxX,nMaxY):
+def makeLLHREffVEffGraph(likelihoodHistNum,likelihoodHistDenom,treeX,treeY,nMaxX,nMaxY,iPlane):
   valuesX = []
   for iEntry in range(nMaxX):
     treeX.GetEntry(iEntry)
-    llhNum = evalLogLikelihood(likelihoodHistNum,treeX)
-    llhDenom = evalLogLikelihood(likelihoodHistDenom,treeX)
+    llhNum = evalLogLikelihood(likelihoodHistNum,treeX,iPlane)
+    llhDenom = evalLogLikelihood(likelihoodHistDenom,treeX,iPlane)
     llhr = llhNum-llhDenom
     valuesX.append(llhr)
   valuesX.sort()
+  valuesX.reverse()
   valuesY = []
   for iEntry in range(nMaxY):
     treeY.GetEntry(iEntry)
-    llhNum = evalLogLikelihood(likelihoodHistNum,treeY)
-    llhDenom = evalLogLikelihood(likelihoodHistDenom,treeY)
+    llhNum = evalLogLikelihood(likelihoodHistNum,treeY,iPlane)
+    llhDenom = evalLogLikelihood(likelihoodHistDenom,treeY,iPlane)
     llhr = llhNum-llhDenom
     valuesY.append(llhr)
   valuesY.sort()
   valuesY.reverse()
   #print min(valuesX), max(valuesX)
   #print min(valuesY), max(valuesY)
-  result = root.TGraph()
+  efficiency = root.TGraph()
   for iX in range(nMaxX):
     effX = iX/float(nMaxX)
     x = valuesX[iX]
@@ -104,8 +106,8 @@ def makeLLHREROCGraph(likelihoodHistNum,likelihoodHistDenom,treeX,treeY,nMaxX,nM
       if y <= x:
         effY = iY/float(nMaxY)
         break
-    result.SetPoint(iX,effX,effY)
-  return result
+    efficiency.SetPoint(iX,effX,effY)
+  return efficiency
 
 if __name__ == "__main__":
 
@@ -166,6 +168,7 @@ if __name__ == "__main__":
     fileConfig['tree'] = tree
   
   outfile = root.TFile("LHPID_Templates.root","recreate")
+  likelihoodsPerPlane = []
   for iPlane in range(2):
     likelihoods = {}
     for fileConfig in fileConfigs:
@@ -192,8 +195,8 @@ if __name__ == "__main__":
       assert(fileConfig['nSkip'] <= tree.GetEntries())
       for iEntry in range(fileConfig['nSkip']):
         tree.GetEntry(iEntry)
-        llhpip = evalLogLikelihood(likelihoods['pip'],tree)
-        llhp = evalLogLikelihood(likelihoods['p'],tree)
+        llhpip = evalLogLikelihood(likelihoods['pip'],tree,iPlane)
+        llhp = evalLogLikelihood(likelihoods['p'],tree,iPlane)
         pipLHDiff.Fill(llhpip-llhp)
         for hist, fileConfig2 in zip(hists,fileConfigs):
           llhVal = 0.
@@ -202,7 +205,7 @@ if __name__ == "__main__":
           elif fileConfig2['name'] == 'p':
             llhVal = llhp
           else:
-            llhVal = evalLogLikelihood(likelihoods[fileConfig2['name']],tree)
+            llhVal = evalLogLikelihood(likelihoods[fileConfig2['name']],tree,iPlane)
           hist.Fill(-llhVal)
       axisHist = makeStdAxisHist(hists)
       setHistTitles(axisHist,"-log(L)","Events/bin")
@@ -229,18 +232,25 @@ if __name__ == "__main__":
     c.SaveAs(saveName+".png")
     c.SaveAs(saveName+".pdf")
 
-    ###############################################
-    # ROC Curves
-    pipFileConfig = [x for x in fileConfigs if x['name']=='pip'][0]
-    pFileConfig = [x for x in fileConfigs if x['name']=='p'][0]
-    graph = makeLLHREROCGraph(likelihoods['pip'],likelihoods['p'],pipFileConfig['tree'],pFileConfig['tree'],pipFileConfig['nSkip'],pFileConfig['nSkip'])
-    axisHist = Hist2D(1,0,1.1,1,0,1.1)
-    setHistTitles(axisHist,"#pi^{+} Efficiency","Proton Rejection")
+    # pipLLH difference integral hists
+
+    pipLHDiffInts = []
+    for h in reversed(pipLHDiffs):
+      h.Scale(1./getIntegralAll(h))
+      h = getIntegralHist(h)
+      pipLHDiffInts.append(h)
+    axisHist = makeStdAxisHist(pipLHDiffInts,freeTopSpace=0.35)
+    setHistTitles(axisHist,"log(L_{#pi^{+}})-log(L_{p})","Efficiency for log(L_{#pi^{+}})-log(L_{p}) #geq X")
     axisHist.Draw()
-    graph.Draw("LP")
-    saveName = "ROC_pip_p_plane{0}".format(iPlane)
+    for h in reversed(pipLHDiffInts):
+      h.Draw("histsame")
+    leg = drawNormalLegend(pipLHDiffInts,["{} MC, {} events".format(x['title'],x['nSkip']) for x in fileConfigs])
+    drawStandardCaptions(c,"Plane {}".format(iPlane))
+    saveName = "LLHR_Effs_plane{0}".format(iPlane)
     c.SaveAs(saveName+".png")
     c.SaveAs(saveName+".pdf")
+
+    likelihoodsPerPlane.append(likelihoods)
 
     ###############################################3
     ## Investigate track pitch
@@ -259,3 +269,24 @@ if __name__ == "__main__":
     #]
     #plotOneHistOnePlot(fileConfigs,histConfigs,c,"dEdxAllTracksNoFile/tree")
   outfile.Close()
+
+  ###############################################
+  # Eff v Eff Curves
+  pipFileConfig = [x for x in fileConfigs if x['name']=='pip'][0]
+  pFileConfig = [x for x in fileConfigs if x['name']=='p'][0]
+  effVeffPlane0 = makeLLHREffVEffGraph(likelihoodsPerPlane[0]['pip'],likelihoodsPerPlane[0]['p'],pipFileConfig['tree'],pFileConfig['tree'],pipFileConfig['nSkip'],pFileConfig['nSkip'],0)
+  effVeffPlane1 = makeLLHREffVEffGraph(likelihoodsPerPlane[1]['pip'],likelihoodsPerPlane[1]['p'],pipFileConfig['tree'],pFileConfig['tree'],pipFileConfig['nSkip'],pFileConfig['nSkip'],1)
+  axisHist = Hist2D(1,0,1.0,1,0,1.0)
+  setHistTitles(axisHist,"#pi^{+} Efficiency","Proton Efficiency")
+  axisHist.Draw()
+  effVeffPlane0.SetLineColor(root.kRed+1)
+  effVeffPlane0.SetMarkerColor(root.kRed+1)
+  effVeffPlane1.SetLineColor(root.kBlue)
+  effVeffPlane1.SetMarkerColor(root.kBlue)
+  effVeffPlane0.Draw("LP")
+  effVeffPlane1.Draw("LP")
+  drawStandardCaptions(c,"#pi^{+}/p likelihood ratio")
+  saveName = "effVeff_pip_p"
+  c.SaveAs(saveName+".png")
+  c.SaveAs(saveName+".pdf")
+

@@ -1760,7 +1760,7 @@ def getIntegralAll(hist,boundaries=[]):
   xbinHigh = None
   if len(boundaries)==0:
     xbinLow = 0
-    xbinHigh = hist.GetXaxis().GetNbins()
+    xbinHigh = hist.GetXaxis().GetNbins()+1
   elif len(boundaries)==2:
     xbinLow, xbinHigh = getXbinsHighLow(hist,boundaries[0],boundaries[1])
   else:
