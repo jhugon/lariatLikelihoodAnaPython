@@ -15,6 +15,8 @@ root.gROOT.SetBatch(True)
 *Br    7 :pdg       : pdg/I                                                  *
 """
 
+MULTIPLYBYPITCH=False
+
 def makeLikelihood(fileConfig,iPlane,binningArg=[325,0.,26.,200,0.,100.],evalFrac=0.1):
   ## Compute bin width from binning arg
   binWidthX = (float(binningArg[2])-binningArg[1])/binningArg[0]
@@ -31,7 +33,10 @@ def makeLikelihood(fileConfig,iPlane,binningArg=[325,0.,26.,200,0.,100.],evalFra
   hist = Hist2D(*binningArg,TH2D=True)
   hist.SetName("pdg{0:d}_plane{1:d}".format(fileConfig['pdg'],iPlane))
   histname = hist.GetName()
-  tree.Draw("dEdx_pitchCorr:resRange >> {0}".format(histname),cuts,"",nEntries,nSkip)
+  if MULTIPLYBYPITCH:
+    tree.Draw("dEdx_pitchCorr:resRange >> {0}".format(histname),cuts,"",nEntries,nSkip)
+  else:
+    tree.Draw("dEdx_raw:resRange >> {0}".format(histname),cuts,"",nEntries,nSkip)
 
   setHistTitles(hist,"Residual Range [cm]","dE/dx [MeV/cm]")
   hist.Draw("colz")
@@ -52,7 +57,7 @@ def makeLikelihood(fileConfig,iPlane,binningArg=[325,0.,26.,200,0.,100.],evalFra
     likelihood.Scale(1./likelihoodIntegral)
 
   setHistTitles(likelihood,"Residual Range [cm]","dE/dx [MeV/cm]")
-  setHistRange(likelihood,0,10,0,20)
+  setHistRange(likelihood,0,20,0,30)
   likelihood.Draw("colz")
   drawStandardCaptions(c,"Likelihood for {}, plane {}".format(fileConfig["title"],iPlane),captionright2="Events: {0:.0f}".format(nEntries-nSkip),captionright3="Entries: {0:.0f}".format(likelihood.GetEntries()),captionright1=binCaption)
   plotfn = "LH_{}_plane{}.png".format(fileConfig['name'],iPlane)
@@ -66,8 +71,11 @@ def evalLogLikelihood(likelihoodHist,tree,iPlane):
   You must have called tree.GetEntry(i) for the entry you want
   """
   result = 0.
-  for rr, dEdx, plane in zip(tree.resRange,tree.dEdx_pitchCorr,tree.plane):
-    if iPlane == tree.plane:
+  dEdxVec = tree.dEdx_raw
+  if MULTIPLYBYPITCH:
+    dEdxVec = tree.dEdx_pitchCorr
+  for rr, dEdx, plane in zip(tree.resRange,dEdxVec,tree.plane):
+    if iPlane == plane:
       iBin = likelihoodHist.FindBin(rr,dEdx)
       lh = likelihoodHist.GetBinContent(iBin)
       result += log(lh)
@@ -115,6 +123,7 @@ if __name__ == "__main__":
   evalFrac = 0.1
   fileConfigs = [
     {
+      #'fn': "isoInTPC/isoInTPC_p_v3_dEdxAllTracksNoFile.root",
       #'fn': "isoInTPC_v5files/isoInTPC_p_v5_dEdxAllTracksNoFile.root",
       'fn': "isoInTPC_v5filesNew/isoInTPC_p_v5_dEdxAllTracksNoFileNew.root",
       'pdg': 2212,
@@ -125,6 +134,7 @@ if __name__ == "__main__":
       'nPlanes': 2,
     },
     {
+      #'fn': "isoInTPC/isoInTPC_pip_v3_dEdxAllTracksNoFile.root",
       #'fn': "isoInTPC_v5files/isoInTPC_pip_v5_dEdxAllTracksNoFile.root",
       'fn': "isoInTPC_v5filesNew/isoInTPC_pip_v5_dEdxAllTracksNoFileNew.root",
       'pdg': 211,
@@ -135,6 +145,7 @@ if __name__ == "__main__":
       'nPlanes': 2,
     },
     {
+      #'fn': "isoInTPC/isoInTPC_mup_v3_dEdxAllTracksNoFile.root",
       #'fn': "isoInTPC_v5files/isoInTPC_mup_v5_dEdxAllTracksNoFile.root",
       'fn': "isoInTPC_v5filesNew/isoInTPC_mup_v5_dEdxAllTracksNoFileNew.root",
       'pdg': -13,
@@ -145,6 +156,7 @@ if __name__ == "__main__":
       'nPlanes': 2,
     },
     {
+      #'fn': "isoInTPC/isoInTPC_kp_v3_dEdxAllTracksNoFile.root",
       #'fn': "isoInTPC_v5files/isoInTPC_kp_v5_dEdxAllTracksNoFile.root",
       'fn': "isoInTPC_v5filesNew/isoInTPC_kp_v5_dEdxAllTracksNoFileNew.root",
       'pdg': 321,
@@ -176,6 +188,7 @@ if __name__ == "__main__":
       hist, likelihoods[fileConfig['name']] = makeLikelihood(fileConfig,iPlane,binningArg,evalFrac)
       outfile.cd()
       hist.Write()
+    likelihoodsPerPlane.append(likelihoods)
     ## Now Save Histogram File
     ## Now Evaluate
     pipLHDiffs = [Hist(200,-1000,1000) for f in fileConfigs]
@@ -250,7 +263,6 @@ if __name__ == "__main__":
     c.SaveAs(saveName+".png")
     c.SaveAs(saveName+".pdf")
 
-    likelihoodsPerPlane.append(likelihoods)
 
     ###############################################3
     ## Investigate track pitch
@@ -268,7 +280,6 @@ if __name__ == "__main__":
     #  },
     #]
     #plotOneHistOnePlot(fileConfigs,histConfigs,c,"dEdxAllTracksNoFile/tree")
-  outfile.Close()
 
   ###############################################
   # Eff v Eff Curves
@@ -283,10 +294,15 @@ if __name__ == "__main__":
   effVeffPlane0.SetMarkerColor(root.kRed+1)
   effVeffPlane1.SetLineColor(root.kBlue)
   effVeffPlane1.SetMarkerColor(root.kBlue)
-  effVeffPlane0.Draw("LP")
-  effVeffPlane1.Draw("LP")
+  effVeffPlane0.SetLineWidth(3)
+  effVeffPlane1.SetLineWidth(3)
+  effVeffPlane1.Draw("L")
+  effVeffPlane0.Draw("L")
+  leg = drawNormalLegend([effVeffPlane0,effVeffPlane1],["Plane 0", "Plane 1"])
   drawStandardCaptions(c,"#pi^{+}/p likelihood ratio")
   saveName = "effVeff_pip_p"
   c.SaveAs(saveName+".png")
   c.SaveAs(saveName+".pdf")
 
+  ########################
+  outfile.Close()
