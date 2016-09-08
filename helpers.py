@@ -18,6 +18,7 @@ import datetime
 import random
 import uuid
 import numbers
+import copy
 #import matplotlib.pyplot as mpl
 
 def plotManyFilesOnePlot(fileConfigs,histConfigs,canvas,treename,outPrefix="",outSuffix="Hist",nMax=sys.maxint):
@@ -39,6 +40,7 @@ def plotManyFilesOnePlot(fileConfigs,histConfigs,canvas,treename,outPrefix="",ou
     pdg: PDG ID number (unused)
     name: name of sample (unused)
     addFriend: add friend tree to main tree. Should be a length 2 list [treename,filename]
+    cuts: additional cuts per file concat to histConfig cuts, default ""
   histConfig options:
     name: name of histogram, used for savename REQUIRED
     xtitle: x axis title
@@ -116,7 +118,10 @@ def plotManyFilesOnePlot(fileConfigs,histConfigs,canvas,treename,outPrefix="",ou
         hist.SetLineColor(fileConfig['color'])
       varAndHist = var + " >> " + hist.GetName()
       tree = fileConfig['tree']
-      tree.Draw(varAndHist,cuts,"",nMax)
+      thiscuts = copy.deepcopy(cuts)
+      if "cuts" in fileConfig:
+        thiscuts += fileConfig['cuts']
+      tree.Draw(varAndHist,thiscuts,"",nMax)
       scaleFactor = 1.
       if "scaleFactor" in fileConfig: scaleFactor = fileConfig['scaleFactor']
       hist.Scale(scaleFactor)
@@ -168,6 +173,7 @@ def plotManyHistsOnePlot(fileConfigs,histConfigs,canvas,treename,outPrefix="",ou
     caption, captionleft1, captionleft2, captionleft3, captionright1,
         captionright2, captionright3, preliminaryString:
         all are passed to drawStandardCaptions. histConfig arguments override these
+    cuts: additional cuts per file concat to histConfig cuts, default ""
   histConfig options:
     name: (unused)
     title: title of histogram, used for legend
@@ -264,6 +270,9 @@ def plotManyHistsOnePlot(fileConfigs,histConfigs,canvas,treename,outPrefix="",ou
       #if var.count(":") != 0:
       #  raise Exception("No ':' allowed in variable, only 1D hists allowed",var)
       cuts = histConfig['cuts']
+      thiscuts = copy.deepcopy(cuts)
+      if "cuts" in fileConfig:
+        thiscuts += fileConfig['cuts']
       hist = None
       if len(binning) == 3:
         hist = Hist(*binning)
@@ -272,7 +281,7 @@ def plotManyHistsOnePlot(fileConfigs,histConfigs,canvas,treename,outPrefix="",ou
       if 'color' in histConfig:
         hist.SetLineColor(histConfig['color'])
       varAndHist = var + " >> " + hist.GetName()
-      tree.Draw(varAndHist,cuts,"",nMax)
+      tree.Draw(varAndHist,thiscuts,"",nMax)
       scaleFactor = 1.
       if "scaleFactor" in fileConfig: scaleFactor = fileConfig['scaleFactor']
       hist.Scale(scaleFactor)
@@ -324,6 +333,7 @@ def plotOneHistOnePlot(fileConfigs,histConfigs,canvas,treename,outPrefix="",outS
     caption, captionleft1, captionleft2, captionleft3, captionright1,
         captionright2, captionright3, preliminaryString:
         all are passed to drawStandardCaptions. histConfig arguments override these
+    cuts: additional cuts per file concat to histConfig cuts, default ""
   histConfig options:
     name: name of histogram, used for savename REQUIRED
     color: sets line/marker color of histogram
@@ -368,6 +378,9 @@ def plotOneHistOnePlot(fileConfigs,histConfigs,canvas,treename,outPrefix="",outS
       elif ncolon == 1:
         is2D = True
       cuts = histConfig['cuts']
+      thiscuts = copy.deepcopy(cuts)
+      if "cuts" in fileConfig:
+        thiscuts += fileConfig['cuts']
       xtitle = ""
       ytitle = "Events/bin"
       ztitle = None
@@ -421,7 +434,7 @@ def plotOneHistOnePlot(fileConfigs,histConfigs,canvas,treename,outPrefix="",outS
       if 'color' in histConfig:
         hist.SetLineColor(histConfig['color'])
       varAndHist = var + " >> " + hist.GetName()
-      tree.Draw(varAndHist,cuts,"",nMax)
+      tree.Draw(varAndHist,thiscuts,"",nMax)
       scaleFactor = 1.
       if "scaleFactor" in fileConfig: scaleFactor = fileConfig['scaleFactor']
       hist.Scale(scaleFactor)
