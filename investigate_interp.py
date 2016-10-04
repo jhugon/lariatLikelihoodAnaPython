@@ -146,6 +146,15 @@ if __name__ == "__main__":
       'cuts': "plane==1",
       #'normalize': True,
     },
+    {
+      'name': "trkCurvynessVinterpKE",
+      'xtitle': "Interpolated True Kinetic Energy [MeV]",
+      'ytitle': "Track Curveyness [deg]",
+      'binning': [100,0.,1000,60,0,30],
+      'var': "trkCurvyness*180/pi:interpE*1000-938.27",
+      'cuts': "plane==1",
+      #'normalize': True,
+    },
   ]
   plotOneHistOnePlot(fileConfigs,histConfigs,c,"dEdxAllTracksNoFile/tree",outPrefix="checkinterp_")
 
