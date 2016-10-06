@@ -276,6 +276,72 @@ if __name__ == "__main__":
       'var': "resRange[0]/true_resRange[0]",
       'cuts': "",
     },
+    {
+      'name': "lengthFracVp",
+      'xtitle': "Initial proton momentum [MeV/c]",
+      'ytitle': "Track length / True length",
+      'binning': [30,0,1500,40,0,2],
+      'var': "resRange[0]/true_resRange[0]:true_p*1000",
+      'cuts': "",
+    },
   ]
   plotOneHistOnePlot(fileConfigs,histConfigs,c,"dEdxAllTracksNoFile/tree",outPrefix="checklength_")
 
+#  fileConfigs = [
+#    {
+#      #'fn': "isoInTPC/isoInTPC_p_v3_dEdxAllTracksNoFile.root",
+#      #'fn': "isoInTPC_v5files/isoInTPC_p_v5_dEdxAllTracksNoFile.root",
+#      #'fn': "isoInTPC_v5filesNew/isoInTPC_p_v5_dEdxAllTracksNoFileNew.root",
+#      'fn': "isoInTPC_v5filesNew/isoInTPC_to1500MeV_p_v5_dEdxAllTracksNoFile.root",
+#      'pdg': 2212,
+#      'name': "p",
+#      'title': "p",
+#      'caption': "proton MC sample",
+#      'color': root.kGreen+1,
+#      'nPlanes': 2,
+#    },
+#    {
+#      #'fn': "isoInTPC/isoInTPC_pip_v3_dEdxAllTracksNoFile.root",
+#      #'fn': "isoInTPC_v5files/isoInTPC_pip_v5_dEdxAllTracksNoFile.root",
+#      'fn': "isoInTPC_v5filesNew/isoInTPC_pip_v5_dEdxAllTracksNoFileNew.root",
+#      'pdg': 211,
+#      'name': "pip",
+#      'title': "#pi^{+}",
+#      'caption': "#pi^{+} MC sample",
+#      'color': root.kBlack,
+#      'nPlanes': 2,
+#    },
+#    {
+#      #'fn': "isoInTPC/isoInTPC_mup_v3_dEdxAllTracksNoFile.root",
+#      #'fn': "isoInTPC_v5files/isoInTPC_mup_v5_dEdxAllTracksNoFile.root",
+#      'fn': "isoInTPC_v5filesNew/isoInTPC_mup_v5_dEdxAllTracksNoFileNew.root",
+#      'pdg': -13,
+#      'name': "mup",
+#      'title': "#mu^{+}",
+#      'caption': "#mu^{+} MC sample",
+#      'color': root.kRed,
+#      'nPlanes': 2,
+#    },
+#    {
+#      #'fn': "isoInTPC/isoInTPC_kp_v3_dEdxAllTracksNoFile.root",
+#      #'fn': "isoInTPC_v5files/isoInTPC_kp_v5_dEdxAllTracksNoFile.root",
+#      'fn': "isoInTPC_v5filesNew/isoInTPC_kp_v5_dEdxAllTracksNoFileNew.root",
+#      'pdg': 321,
+#      'name': "kp",
+#      'title': "K^{+}",
+#      'caption': "K^{+} MC sample",
+#      'color': root.kBlue,
+#      'nPlanes': 2,
+#    },
+#  ]
+#  histConfigs = [
+#    {
+#      'name': "lengthFrac",
+#      'xtitle': "Track length / True length",
+#      'ytitle': "Events / bin",
+#      'binning': [100,0,2],
+#      'var': "resRange[0]/true_resRange[0]",
+#      'cuts': "",
+#    },
+#  ]
+#  plotManyFilesOnePlot(fileConfigs,histConfigs,c,"dEdxAllTracksNoFile/tree",outPrefix="checklength2_")

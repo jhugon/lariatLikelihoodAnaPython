@@ -360,6 +360,10 @@ def plotOneHistOnePlot(fileConfigs,histConfigs,canvas,treename,outPrefix="",outS
         their low bin edges.
     title: (unused)
     addFriend: add friend tree to main tree. Should be a length 2 list [treename,filename]
+    profileX: if True, draw profileX of 2D hist
+    profileY: if True, draw profileY of 2D hist
+    profileXtoo: if True, draw profileX of 2D hist, on top of 2D hist
+    profileYtoo: if True, draw profileY of 2D hist, on top of 2D hist
   """
   
   for fileConfig in fileConfigs:

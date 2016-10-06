@@ -30,6 +30,8 @@ def makeLikelihood(fileConfig,iPlane,binningArg=[325,0.,26.,200,0.,100.],evalFra
   fileConfig['nSkip'] = nSkip
   nPlanes = fileConfig['nPlanes']
   cuts = "pdg == {0:d} && plane == {1:d}".format(fileConfig['pdg'],iPlane)
+  if fileConfig['name'] == 'p':
+    cuts += "&& true_p < 0.75"
   hist = Hist2D(*binningArg,TH2D=True)
   hist.SetName("pdg{0:d}_plane{1:d}".format(fileConfig['pdg'],iPlane))
   histname = hist.GetName()
@@ -125,47 +127,50 @@ if __name__ == "__main__":
     {
       #'fn': "isoInTPC/isoInTPC_p_v3_dEdxAllTracksNoFile.root",
       #'fn': "isoInTPC_v5files/isoInTPC_p_v5_dEdxAllTracksNoFile.root",
-      'fn': "isoInTPC_v5filesNew/isoInTPC_p_v5_dEdxAllTracksNoFileNew.root",
+      #'fn': "isoInTPC_v5filesNew/isoInTPC_p_v5_dEdxAllTracksNoFileNew.root",
+      #'fn': "isoInTPC_v5filesNew/isoInTPC_to1500MeV_p_v5_dEdxAllTracksNoFile.root",
+      'fn': "06_06_01_v2/likelihood_p_to1500MeV_v2.root",
       'pdg': 2212,
       'name': "p",
       'title': "p",
       'caption': "proton MC sample",
-      'color': root.kGreen+1,
+      'color': root.kRed,
       'nPlanes': 2,
     },
     {
       #'fn': "isoInTPC/isoInTPC_pip_v3_dEdxAllTracksNoFile.root",
       #'fn': "isoInTPC_v5files/isoInTPC_pip_v5_dEdxAllTracksNoFile.root",
-      'fn': "isoInTPC_v5filesNew/isoInTPC_pip_v5_dEdxAllTracksNoFileNew.root",
+      #'fn': "isoInTPC_v5filesNew/isoInTPC_pip_v5_dEdxAllTracksNoFileNew.root",
+      'fn': "06_06_01_v2/likelihood_pip_v2.root",
       'pdg': 211,
       'name': "pip",
       'title': "#pi^{+}",
       'caption': "#pi^{+} MC sample",
-      'color': root.kBlack,
-      'nPlanes': 2,
-    },
-    {
-      #'fn': "isoInTPC/isoInTPC_mup_v3_dEdxAllTracksNoFile.root",
-      #'fn': "isoInTPC_v5files/isoInTPC_mup_v5_dEdxAllTracksNoFile.root",
-      'fn': "isoInTPC_v5filesNew/isoInTPC_mup_v5_dEdxAllTracksNoFileNew.root",
-      'pdg': -13,
-      'name': "mup",
-      'title': "#mu^{+}",
-      'caption': "#mu^{+} MC sample",
-      'color': root.kRed,
-      'nPlanes': 2,
-    },
-    {
-      #'fn': "isoInTPC/isoInTPC_kp_v3_dEdxAllTracksNoFile.root",
-      #'fn': "isoInTPC_v5files/isoInTPC_kp_v5_dEdxAllTracksNoFile.root",
-      'fn': "isoInTPC_v5filesNew/isoInTPC_kp_v5_dEdxAllTracksNoFileNew.root",
-      'pdg': 321,
-      'name': "kp",
-      'title': "K^{+}",
-      'caption': "K^{+} MC sample",
       'color': root.kBlue,
       'nPlanes': 2,
     },
+    #{
+    #  #'fn': "isoInTPC/isoInTPC_mup_v3_dEdxAllTracksNoFile.root",
+    #  #'fn': "isoInTPC_v5files/isoInTPC_mup_v5_dEdxAllTracksNoFile.root",
+    #  'fn': "isoInTPC_v5filesNew/isoInTPC_mup_v5_dEdxAllTracksNoFileNew.root",
+    #  'pdg': -13,
+    #  'name': "mup",
+    #  'title': "#mu^{+}",
+    #  'caption': "#mu^{+} MC sample",
+    #  'color': root.kBlack,
+    #  'nPlanes': 2,
+    #},
+    #{
+    #  #'fn': "isoInTPC/isoInTPC_kp_v3_dEdxAllTracksNoFile.root",
+    #  #'fn': "isoInTPC_v5files/isoInTPC_kp_v5_dEdxAllTracksNoFile.root",
+    #  'fn': "isoInTPC_v5filesNew/isoInTPC_kp_v5_dEdxAllTracksNoFileNew.root",
+    #  'pdg': 321,
+    #  'name': "kp",
+    #  'title': "K^{+}",
+    #  'caption': "K^{+} MC sample",
+    #  'color': root.kGreen+1,
+    #  'nPlanes': 2,
+    #},
   ]
   
   ## Compute bin width from binning arg
@@ -191,14 +196,15 @@ if __name__ == "__main__":
     likelihoodsPerPlane.append(likelihoods)
     ## Now Save Histogram File
     ## Now Evaluate
-    pipLHDiffs = [Hist(200,-1000,1000) for f in fileConfigs]
+    #pipLHDiffs = [Hist(200,-1000,1000) for f in fileConfigs]
+    pipLHDiffs = [Hist(100,-750,750) for f in fileConfigs]
     for fileConfig,pipLHDiff in zip(fileConfigs,pipLHDiffs):
       tree = fileConfig['tree']
       hists = []
       labels = []
       labelsRatio = []
       for fileConfig2 in fileConfigs:
-        hist = Hist(100,0.,5000)
+        hist = Hist(100,0.,1500)
         hist.UseCurrentStyle()
         color = fileConfig2['color']
         hist.SetLineColor(color)
@@ -224,6 +230,7 @@ if __name__ == "__main__":
       setHistTitles(axisHist,"-log(L)","Events/bin")
       axisHist.Draw()
       for hist in hists:
+        showHistOverflow(hist)
         hist.Draw("histsame")
       leg = drawNormalLegend(hists,labels)
       drawStandardCaptions(c,"{}, plane {}".format(fileConfig['caption'], iPlane))
@@ -231,13 +238,19 @@ if __name__ == "__main__":
       c.SaveAs(saveName+".png")
     
     # pipLLH differences
+    pipLHDiffsOverflown = []
     for h, fileConfig in zip(pipLHDiffs,fileConfigs):
       h.UseCurrentStyle()
       h.SetLineColor(fileConfig['color'])
+      h.Scale(1./getIntegralAll(h))
+      h = h.Clone(h.GetName()+"_overflown")
+      showHistOverflow(h)
+      pipLHDiffsOverflown.append(h)
     axisHist = makeStdAxisHist(pipLHDiffs,freeTopSpace=0.35)
-    setHistTitles(axisHist,"log(L_{#pi^{+}})-log(L_{p})","Events/bin")
+    setHistTitles(axisHist,"log(L_{#pi^{+}})-log(L_{p})","Normalized events/bin")
+    #axisHist.GetXaxis().SetRangeUser(-500,500)
     axisHist.Draw()
-    for h in reversed(pipLHDiffs):
+    for h in reversed(pipLHDiffsOverflown):
       h.Draw("histsame")
     leg = drawNormalLegend(pipLHDiffs,["{} MC, {} events".format(x['title'],x['nSkip']) for x in fileConfigs])
     drawStandardCaptions(c,"Plane {}".format(iPlane))
@@ -249,7 +262,6 @@ if __name__ == "__main__":
 
     pipLHDiffInts = []
     for h in reversed(pipLHDiffs):
-      h.Scale(1./getIntegralAll(h))
       h = getIntegralHist(h)
       pipLHDiffInts.append(h)
     axisHist = makeStdAxisHist(pipLHDiffInts,freeTopSpace=0.35)
