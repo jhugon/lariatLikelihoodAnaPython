@@ -30,8 +30,9 @@ def makeLikelihood(fileConfig,iPlane,binningArg=[325,0.,26.,200,0.,100.],evalFra
   fileConfig['nSkip'] = nSkip
   nPlanes = fileConfig['nPlanes']
   cuts = "pdg == {0:d} && plane == {1:d}".format(fileConfig['pdg'],iPlane)
-  if fileConfig['name'] == 'p':
-    cuts += "&& true_p < 0.75"
+  #if fileConfig['name'] == 'p':
+  #  cuts += "&& true_p < 0.75"
+  #cuts += "&& resRange > 0.5"
   hist = Hist2D(*binningArg,TH2D=True)
   hist.SetName("pdg{0:d}_plane{1:d}".format(fileConfig['pdg'],iPlane))
   histname = hist.GetName()
@@ -61,7 +62,7 @@ def makeLikelihood(fileConfig,iPlane,binningArg=[325,0.,26.,200,0.,100.],evalFra
   setHistTitles(likelihood,"Residual Range [cm]","dE/dx [MeV/cm]")
   setHistRange(likelihood,0,20,0,30)
   likelihood.Draw("colz")
-  drawStandardCaptions(c,"Likelihood for {}, plane {}".format(fileConfig["title"],iPlane),captionright2="Events: {0:.0f}".format(nEntries-nSkip),captionright3="Entries: {0:.0f}".format(likelihood.GetEntries()),captionright1=binCaption)
+  drawStandardCaptions(c,"Likelihood for {}, plane {}".format(fileConfig["title"],iPlane),captionright2="Events: {0:.0f}".format(nEntries-nSkip),captionright3="Entries: {0:.0f}".format(likelihood.GetEntries()),captionright1=binCaption,colorInside=root.kWhite)
   plotfn = "LH_{}_plane{}.png".format(fileConfig['name'],iPlane)
   c.SaveAs(plotfn)
   setupCOLZFrame(c,True)
@@ -129,7 +130,7 @@ if __name__ == "__main__":
       #'fn': "isoInTPC_v5files/isoInTPC_p_v5_dEdxAllTracksNoFile.root",
       #'fn': "isoInTPC_v5filesNew/isoInTPC_p_v5_dEdxAllTracksNoFileNew.root",
       #'fn': "isoInTPC_v5filesNew/isoInTPC_to1500MeV_p_v5_dEdxAllTracksNoFile.root",
-      'fn': "06_06_01_v2/likelihood_p_to1500MeV_v2.root",
+      'fn': "06_06_01_v2_likelihoodv2.1/dEdxAllTracksNoFileV2.1_to1500MeV_p_v2.root",
       'pdg': 2212,
       'name': "p",
       'title': "p",
@@ -141,7 +142,7 @@ if __name__ == "__main__":
       #'fn': "isoInTPC/isoInTPC_pip_v3_dEdxAllTracksNoFile.root",
       #'fn': "isoInTPC_v5files/isoInTPC_pip_v5_dEdxAllTracksNoFile.root",
       #'fn': "isoInTPC_v5filesNew/isoInTPC_pip_v5_dEdxAllTracksNoFileNew.root",
-      'fn': "06_06_01_v2/likelihood_pip_v2.root",
+      'fn': "06_06_01_v2_likelihoodv2.1/dEdxAllTracksNoFileV2.1_pip_v2.root",
       'pdg': 211,
       'name': "pip",
       'title': "#pi^{+}",

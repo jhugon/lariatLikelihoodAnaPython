@@ -13,42 +13,51 @@ root.gROOT.SetBatch(True)
 *Br    5 :interpE   : vector<float>                                          *
 *Br    6 :interpP   : vector<float>                                          *
 *Br    7 :interpDistance : vector<float>                                     *
-*Br    8 :KE        : KE/F                                                   *
-*Br    9 :nCaloHits : nCaloHits/i                                            *
-*Br   10 :pdg       : pdg/I                                                  *
-*Br   11 :startPosX : startPosX/F                                            *
-*Br   12 :startPosY : startPosY/F                                            *
-*Br   13 :startPosZ : startPosZ/F                                            *
-*Br   14 :endPosX   : endPosX/F                                              *
-*Br   15 :endPosY   : endPosY/F                                              *
-*Br   16 :endPosZ   : endPosZ/F                                              *
-*Br   17 :trkCurvyness : trkCurvyness/F                                      *
-*Br   18 :trkSqrdCurvyness : trkSqrdCurvyness/F                              *
-*Br   19 :true_resRange : vector<float>                                      *
-*Br   20 :true_dEdx : vector<float>                                          *
-*Br   21 :true_inTPC : vector<bool>                                          *
-*Br   22 :nTruePoints : nTruePoints/i                                        *
-*Br   23 :true_ELostInTPC : true_ELostInTPC/F                                *
-*Br   24 :true_E    : true_E/F                                               *
-*Br   25 :true_p    : true_p/F                                               *
-*Br   26 :true_thetaZenith : true_thetaZenith/F                              *
-*Br   27 :true_thetaYZ : true_thetaYZ/F                                      *
-*Br   28 :true_thetaYX : true_thetaYX/F                                      *
-*Br   29 :true_startPosX : true_startPosX/F                                  *
-*Br   30 :true_startPosY : true_startPosY/F                                  *
-*Br   31 :true_startPosZ : true_startPosZ/F                                  *
-*Br   32 :true_endPosX : true_endPosX/F                                      *
-*Br   33 :true_endPosY : true_endPosY/F                                      *
-*Br   34 :true_endPosZ : true_endPosZ/F                                      *
-*Br   35 :true_process : string                                              *
-*Br   36 :true_endProcess : string                                           *
+*Br    8 :interpDistanceToClosestTrajPoint : vector<float>                   *
+*Br    9 :interpIClosestTrajPoint : vector<unsigned int>                     *
+*Br   10 :KE        : KE/F                                                   *
+*Br   11 :nCaloHits : nCaloHits/i                                            *
+*Br   12 :pdg       : pdg/I                                                  *
+*Br   13 :startPosX : startPosX/F                                            *
+*Br   14 :startPosY : startPosY/F                                            *
+*Br   15 :startPosZ : startPosZ/F                                            *
+*Br   16 :endPosX   : endPosX/F                                              *
+*Br   17 :endPosY   : endPosY/F                                              *
+*Br   18 :endPosZ   : endPosZ/F                                              *
+*Br   19 :trkCurvyness : trkCurvyness/F                                      *
+*Br   20 :matchStartDistance : matchStartDistance/F                          *
+*Br   21 :matchStartAngle : matchStartAngle/F                                *
+*Br   22 :matchEndDistance : matchEndDistance/F                              *
+*Br   23 :matchEndAngle : matchEndAngle/F                                    *
+*Br   24 :true_resRange : vector<float>                                      *
+*Br   25 :true_dEdx : vector<float>                                          *
+*Br   26 :true_trajE : vector<float>                                         *
+*Br   27 :true_trajp : vector<float>                                         *
+*Br   28 :true_inTPC : vector<bool>                                          *
+*Br   29 :true_trajProcIs : vector<unsigned int>                             *
+*Br   30 :true_trajProcNames : vector<string>                                *
+*Br   31 :nTruePoints : nTruePoints/i                                        *
+*Br   32 :true_ELostInTPC : true_ELostInTPC/F                                *
+*Br   33 :true_E    : true_E/F                                               *
+*Br   34 :true_p    : true_p/F                                               *
+*Br   35 :true_thetaZenith : true_thetaZenith/F                              *
+*Br   36 :true_thetaYZ : true_thetaYZ/F                                      *
+*Br   37 :true_thetaYX : true_thetaYX/F                                      *
+*Br   38 :true_startPosX : true_startPosX/F                                  *
+*Br   39 :true_startPosY : true_startPosY/F                                  *
+*Br   40 :true_startPosZ : true_startPosZ/F                                  *
+*Br   41 :true_endPosX : true_endPosX/F                                      *
+*Br   42 :true_endPosY : true_endPosY/F                                      *
+*Br   43 :true_endPosZ : true_endPosZ/F                                      *
+*Br   44 :true_process : string                                              *
+*Br   45 :true_endProcess : string                                           *
 """
 if __name__ == "__main__":
   c = root.TCanvas()
 
   fileConfigs = [
     {
-      'fn': "06_06_01/dEdxAllTracksNoFileV2_to1500_p_v2.root",
+      'fn': "06_06_01_v2_likelihoodv2.2/dEdxAllTracksNoFileV2.2_to1500MeV_p_v2.root",
       'name': "",
     },
   ]
@@ -61,6 +70,86 @@ if __name__ == "__main__":
       'var': "dEdx_raw:resRange",
       'cuts': "plane==1",
       #'normalize': True,
+    },
+    {
+      'name': "dEdxVRange_endsInelastic",
+      'xtitle': "Residual range [cm]",
+      'ytitle': "dE/dx [MeV/cm]",
+      'binning': [100,0.,15.,30,0.,30.],
+      'var': "dEdx_raw:resRange",
+      'cuts': 'plane==1 && true_endProcess == "protonInelastic"',
+      #'normalize': True,
+      'caption': "True EndProcess = protonInelastic"
+    },
+    {
+      'name': "dEdxVRange_notEndsInelastic",
+      'xtitle': "Residual range [cm]",
+      'ytitle': "dE/dx [MeV/cm]",
+      'binning': [100,0.,15.,30,0.,30.],
+      'var': "dEdx_raw:resRange",
+      'cuts': 'plane==1 && true_endProcess != "protonInelastic"',
+      #'normalize': True,
+      'caption': "True EndProcess #neq protonInelastic"
+    },
+    {
+      'name': "dEdxVRange_trkLengthlt0p5",
+      'xtitle': "Residual range [cm]",
+      'ytitle': "dE/dx [MeV/cm]",
+      'binning': [100,0.,15.,30,0.,30.],
+      'var': "dEdx_raw:resRange",
+      'cuts': "plane==1 && resRange[0]/true_resRange[0] < 0.5",
+      #'normalize': True,
+      'caption': "Track Length < 50#% of True Trajectory Length"
+    },
+    {
+      'name': "dEdxVRange_trkLengthgt0p5",
+      'xtitle': "Residual range [cm]",
+      'ytitle': "dE/dx [MeV/cm]",
+      'binning': [100,0.,15.,30,0.,30.],
+      'var': "dEdx_raw:resRange",
+      'cuts': "plane==1 && resRange[0]/true_resRange[0] > 0.5",
+      #'normalize': True,
+      'caption': "Track Length > 50#% of True Trajectory Length"
+    },
+    {
+      'name': "dEdxVRange_trkLengthlt1p25",
+      'xtitle': "Residual range [cm]",
+      'ytitle': "dE/dx [MeV/cm]",
+      'binning': [100,0.,15.,30,0.,30.],
+      'var': "dEdx_raw:resRange",
+      'cuts': "plane==1 && resRange[0]/true_resRange[0] < 1.25",
+      #'normalize': True,
+      'caption': "Track Length < 125#% of True Trajectory Length"
+    },
+    {
+      'name': "dEdxVRange_interpDistancelt1cm",
+      'xtitle': "Residual range [cm]",
+      'ytitle': "dE/dx [MeV/cm]",
+      'binning': [100,0.,15.,30,0.,30.],
+      'var': "dEdx_raw:resRange",
+      'cuts': "plane==1 && interpDistance < 1.",
+      #'normalize': True,
+      'caption': "Hit less than 1cm from true trajectory"
+    },
+    {
+      'name': "dEdxVRange_elasticEvent",
+      'xtitle': "Residual range [cm]",
+      'ytitle': "dE/dx [MeV/cm]",
+      'binning': [100,0.,15.,30,0.,30.],
+      'var': "dEdx_raw:resRange",
+      'cuts': "plane==1 && @true_trajProcIs.size() > 0",
+      #'normalize': True,
+      'caption': "Elestic Scatter Present"
+    },
+    {
+      'name': "dEdxVRange_NotElasticEvent",
+      'xtitle': "Residual range [cm]",
+      'ytitle': "dE/dx [MeV/cm]",
+      'binning': [100,0.,15.,30,0.,30.],
+      'var': "dEdx_raw:resRange",
+      'cuts': "plane==1 && @true_trajProcIs.size() == 0",
+      #'normalize': True,
+      'caption': "No Elestic Scatter Present"
     },
     {
       'name': "KEVtrueE",
@@ -88,6 +177,16 @@ if __name__ == "__main__":
       'var': "dEdx_raw:interpE*1000-938.27",
       'cuts': "plane==1",
       #'normalize': True,
+    },
+    {
+      'name': "dEdxVinterpKE_interpDistancelt1cm",
+      'xtitle': "Interpolated True Kinetic Energy [MeV]",
+      'ytitle': "Reco dE/dx [MeV/cm]",
+      'binning': [100,0.,1000.,30,0,30],
+      'var': "dEdx_raw:interpE*1000-938.27",
+      'cuts': "plane==1 && interpDistance < 1.",
+      #'normalize': True,
+      'caption': "Hit less than 1cm from true trajectory"
     },
     {
       'name': "dEdxVinterpKELow",
@@ -129,6 +228,51 @@ if __name__ == "__main__":
       #'normalize': True,
     },
     {
+      'name': "interpDistanceToClosestTrajPoint",
+      'xtitle': "Distance from Reco Hit to Nearest Trajectory Point [cm]",
+      'ytitle': "Entries/bin",
+      'binning': [100,0.,10],
+      'var': "interpDistanceToClosestTrajPoint",
+      'cuts': "plane==1",
+      #'normalize': True,
+    },
+    {
+      'name': "matchStartDistance",
+      'xtitle': "Distance from Start of Reco Track to Start of True Trajectory [cm]",
+      'ytitle': "Entries/bin",
+      'binning': [100,0.,10],
+      'var': "matchStartDistance",
+      'cuts': "",
+      #'normalize': True,
+    },
+    {
+      'name': "matchStartAngle",
+      'xtitle': "Angle between Start of Reco Track to Start of True Trajectory [deg]",
+      'ytitle': "Entries/bin",
+      'binning': [180,0.,180],
+      'var': "matchStartAngle*180/pi",
+      'cuts': "",
+      #'normalize': True,
+    },
+    {
+      'name': "matchEndDistance",
+      'xtitle': "Distance from End of Reco Track to End of True Trajectory [cm]",
+      'ytitle': "Entries/bin",
+      'binning': [100,0.,10],
+      'var': "matchEndDistance",
+      'cuts': "",
+      #'normalize': True,
+    },
+    {
+      'name': "matchEndAngle",
+      'xtitle': "Angle between End of Reco Track to End of True Trajectory [deg]",
+      'ytitle': "Entries/bin",
+      'binning': [180,0.,180],
+      'var': "matchEndAngle*180/pi",
+      'cuts': "",
+      #'normalize': True,
+    },
+    {
       'name': "interpPVtrueP",
       'binning': [150,0,1500,150,0,1500],
       'ytitle': "Interpolated True Momentum [MeV/c]",
@@ -138,11 +282,11 @@ if __name__ == "__main__":
       #'normalize': True,
     },
     {
-      'name': "interpPVtrueP",
+      'name': "trueTrajPVtrueP",
       'binning': [150,0,1500,150,0,1500],
-      'ytitle': "Interpolated True Momentum [MeV/c]",
+      'ytitle': "True Trajectory Momentum [MeV/c]",
       'xtitle': "Initial True Momentum [MeV/c]",
-      'var': "interpP*1000:true_p*1000",
+      'var': "true_trajp*1000:true_p*1000",
       'cuts': "plane==1",
       #'normalize': True,
     },
@@ -153,6 +297,24 @@ if __name__ == "__main__":
       'binning': [100,0.,1000,60,0,30],
       'var': "trkCurvyness*180/pi:interpE*1000-938.27",
       'cuts': "plane==1",
+      #'normalize': True,
+    },
+    {
+      'name': "trueTrajProcI",
+      'xtitle': "Interpolated True Kinetic Energy [MeV]",
+      'ytitle': "Track Curveyness [deg]",
+      'binning': [100,0.,1000,60,0,30],
+      'var': "trkCurvyness*180/pi:interpE*1000-938.27",
+      'cuts': "plane==1",
+      #'normalize': True,
+    },
+    {
+      'name': "LengthOverTrueLength",
+      'xtitle': "Track Length / True Trajectory Length",
+      'ytitle': "Events/bin",
+      'binning': [100,0.,2.],
+      'var': "resRange[0]/true_resRange[0]",
+      'cuts': "",
       #'normalize': True,
     },
   ]
@@ -175,7 +337,7 @@ if __name__ == "__main__":
       'title': "1 MeV < KE #leq 100 MeV",
       'xtitle': "Reco dE/dx [MeV/cm]",
       'ytitle': "Normalized entries/bin",
-      'binning': [30,0,30],
+      'binning': [100,0,30],
       'var': "dEdx_raw",
       'cuts': "plane==1 && interpE*1000-938.27 >1 && interpE*1000-938.27 <= 100",
       'normalize': True,
@@ -186,10 +348,140 @@ if __name__ == "__main__":
       'title': "KE > 100 MeV",
       'xtitle': "Reco dE/dx [MeV/cm]",
       'ytitle': "Normalized entries/bin",
-      'binning': [30,0,30],
+      'binning': [100,0,30],
       'var': "dEdx_raw",
       'cuts': "plane==1 && interpE*1000-938.27 > 100.",
       'normalize': True,
     },
   ]
   plotManyHistsOnePlot(fileConfigs,histConfigs,c,"dEdxAllTracksNoFile/tree",outPrefix="checkinterpdEdx_")
+
+  histConfigs = [
+    {
+      'name': "KEleq1MeV",
+      'title': "KE #leq 1 MeV",
+      'xtitle': "Distance to True Trajectory [cm]",
+      'ytitle': "Entries/cm",
+      'binning': getLogBins(20,0.01,10),
+      'var': "interpDistance",
+      'cuts': "plane==1 && interpE*1000-938.27 <= 1",
+      #'normalize': True,
+      'color': root.kRed,
+      'normToBinWidth': True,
+      'logx': True,
+      'logy': True,
+    },
+    {
+      'name': "KEleq1MeVbasd",
+      'title': "1 MeV < KE #leq 100 MeV",
+      'xtitle': "Distance to True Trajectory [cm]",
+      'ytitle': "Entries/cm",
+      'binning': getLogBins(20,0.01,10),
+      'var': "interpDistance",
+      'cuts': "plane==1 && interpE*1000-938.27 >1 && interpE*1000-938.27 <= 100",
+      #'normalize': True,
+      'color': root.kBlue,
+      'normToBinWidth': True,
+      'logx': True,
+      'logy': True,
+    },
+    {
+      'name': "KEgt1MeV",
+      'title': "KE > 100 MeV",
+      'xtitle': "Distance to True Trajectory [cm]",
+      'ytitle': "Entries/cm",
+      'binning': getLogBins(20,0.01,10),
+      'var': "interpDistance",
+      'cuts': "plane==1 && interpE*1000-938.27 > 100.",
+      #'normalize': True,
+      'normToBinWidth': True,
+      'logx': True,
+      'logy': True,
+    },
+  ]
+  plotManyHistsOnePlot(fileConfigs,histConfigs,c,"dEdxAllTracksNoFile/tree",outPrefix="checksmallKE_interpDistance")
+
+  histConfigs = [
+    {
+      'name': "KEleq1MeV",
+      'title': "KE #leq 1 MeV",
+      'xtitle': "Distance to Nearest True Trajectory Point [cm]",
+      'ytitle': "Normalized entries/bin",
+      'binning': [30,0,30],
+      'var': "interpDistanceToClosestTrajPoint",
+      'cuts': "plane==1 && interpE*1000-938.27 <= 1",
+      'normalize': True,
+      'color': root.kRed,
+    },
+    {
+      'name': "KEleq1MeVbasd",
+      'title': "1 MeV < KE #leq 100 MeV",
+      'xtitle': "Distance to Nearest True Trajectory Point [cm]",
+      'ytitle': "Normalized entries/bin",
+      'binning': [30,0,30],
+      'var': "interpDistanceToClosestTrajPoint",
+      'cuts': "plane==1 && interpE*1000-938.27 >1 && interpE*1000-938.27 <= 100",
+      'normalize': True,
+      'color': root.kBlue,
+    },
+    {
+      'name': "KEgt1MeV",
+      'title': "KE > 100 MeV",
+      'xtitle': "Distance to Nearest True Trajectory Point [cm]",
+      'ytitle': "Normalized entries/bin",
+      'binning': [30,0,30],
+      'var': "interpDistanceToClosestTrajPoint",
+      'cuts': "plane==1 && interpE*1000-938.27 > 100.",
+      'normalize': True,
+    },
+  ]
+  plotManyHistsOnePlot(fileConfigs,histConfigs,c,"dEdxAllTracksNoFile/tree",outPrefix="checksmallKE_interpDistanceToClosestTrajPoint")
+
+  histConfigs = [
+    {
+      'name': "KEleq1MeV",
+      'title': "Inelastic",
+      'xtitle': "Initial Momentum [MeV/c]",
+      'ytitle': "Events/bin",
+      'binning': [150,0,1500],
+      'var': "true_p*1000",
+      'cuts': 'true_endProcess == "protonInelastic"',
+      #'normalize': True,
+      'color': root.kRed,
+    },
+    {
+      'name': "KEgt1MeV",
+      'title': "Ionization",
+      'xtitle': "Initial Momentum [MeV/c]",
+      'ytitle': "Events/bin",
+      'binning': [150,0,1500],
+      'var': "true_p*1000",
+      'cuts': 'true_endProcess != "protonInelastic"',
+      #'normalize': True,
+    },
+  ]
+  plotManyHistsOnePlot(fileConfigs,histConfigs,c,"dEdxAllTracksNoFile/tree",outPrefix="checkEndProcess_trueP")
+  histConfigs = [
+    {
+      'name': "KEleq1MeV",
+      'title': "Inelastic",
+      'xtitle': "Initial Kinetic Energy [MeV]",
+      'ytitle': "Events/bin",
+      'binning': [100,0,1000],
+      'var': "true_E*1000-938.27",
+      'cuts': 'true_endProcess == "protonInelastic"',
+      #'normalize': True,
+      'color': root.kRed,
+    },
+    {
+      'name': "KEgt1MeV",
+      'title': "Ionization",
+      'xtitle': "Initial Kinetic Energy [MeV]",
+      'ytitle': "Events/bin",
+      'binning': [100,0,1000],
+      'var': "true_E*1000-938.27",
+      'cuts': 'true_endProcess != "protonInelastic"',
+      #'normalize': True,
+    },
+  ]
+  plotManyHistsOnePlot(fileConfigs,histConfigs,c,"dEdxAllTracksNoFile/tree",outPrefix="checkEndProcess_trueKE")

@@ -1837,7 +1837,7 @@ def getEfficiencyInterval(passed,total):
   high = eff.ClopperPearson(int(total),int(passed),quant,True)
   return [low,nom,high]
 
-def drawStandardCaptions(canvas,caption,captionleft1="",captionleft2="",captionleft3="",captionright1="",captionright2="",captionright3="",preliminaryString=""):
+def drawStandardCaptions(canvas,caption,captionleft1="",captionleft2="",captionleft3="",captionright1="",captionright2="",captionright3="",preliminaryString="",colorInside=root.kBlack):
   tlatex = root.TLatex()
   tlatex.SetNDC()
 
@@ -1849,6 +1849,7 @@ def drawStandardCaptions(canvas,caption,captionleft1="",captionleft2="",captionl
   tlatex.SetTextAlign(32)
   tlatex.DrawLatex(1.0-canvas.GetRightMargin(),0.96,caption)
   tlatex.SetTextAlign(12)
+  tlatex.SetTextColor(colorInside)
   tlatex.DrawLatex(0.02+canvas.GetLeftMargin(),0.88,captionleft1)
   tlatex.DrawLatex(0.02+canvas.GetLeftMargin(),0.82,captionleft2)
   tlatex.DrawLatex(0.02+canvas.GetLeftMargin(),0.76,captionleft3)
