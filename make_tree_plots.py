@@ -30,9 +30,10 @@ def makeLikelihood(fileConfig,iPlane,binningArg=[325,0.,26.,200,0.,100.],evalFra
   fileConfig['nSkip'] = nSkip
   nPlanes = fileConfig['nPlanes']
   cuts = "pdg == {0:d} && plane == {1:d}".format(fileConfig['pdg'],iPlane)
-  #if fileConfig['name'] == 'p':
-  #  cuts += "&& true_p < 0.75"
-  #cuts += "&& resRange > 0.5"
+#  if fileConfig['name'] == 'p':
+#    cuts += "&& true_p < 0.75"
+#    cuts += "&& true_p > 0.75"
+#  cuts += "&& resRange > 0.5"
   hist = Hist2D(*binningArg,TH2D=True)
   hist.SetName("pdg{0:d}_plane{1:d}".format(fileConfig['pdg'],iPlane))
   histname = hist.GetName()

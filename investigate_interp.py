@@ -92,6 +92,46 @@ if __name__ == "__main__":
       'caption': "True EndProcess #neq protonInelastic"
     },
     {
+      'name': "dEdxVRange_endsInelastic_plt750",
+      'xtitle': "Residual range [cm]",
+      'ytitle': "dE/dx [MeV/cm]",
+      'binning': [100,0.,15.,30,0.,30.],
+      'var': "dEdx_raw:resRange",
+      'cuts': 'plane==1 && true_endProcess == "protonInelastic" && true_p < 0.75',
+      #'normalize': True,
+      'caption': "True EndProcess = protonInelastic, p < 750 MeV/c"
+    },
+    {
+      'name': "dEdxVRange_notEndsInelastic_plt750",
+      'xtitle': "Residual range [cm]",
+      'ytitle': "dE/dx [MeV/cm]",
+      'binning': [100,0.,15.,30,0.,30.],
+      'var': "dEdx_raw:resRange",
+      'cuts': 'plane==1 && true_endProcess != "protonInelastic" && true_p < 0.75',
+      #'normalize': True,
+      'caption': "True EndProcess #neq protonInelastic, p < 750 MeV/c"
+    },
+    {
+      'name': "dEdxVRange_endsInelastic_pgt750",
+      'xtitle': "Residual range [cm]",
+      'ytitle': "dE/dx [MeV/cm]",
+      'binning': [100,0.,15.,30,0.,30.],
+      'var': "dEdx_raw:resRange",
+      'cuts': 'plane==1 && true_endProcess == "protonInelastic" && true_p > 0.75',
+      #'normalize': True,
+      'caption': "True EndProcess = protonInelastic, p > 750 MeV/c"
+    },
+    {
+      'name': "dEdxVRange_notEndsInelastic_pgt750",
+      'xtitle': "Residual range [cm]",
+      'ytitle': "dE/dx [MeV/cm]",
+      'binning': [100,0.,15.,30,0.,30.],
+      'var': "dEdx_raw:resRange",
+      'cuts': 'plane==1 && true_endProcess != "protonInelastic" && true_p > 0.75',
+      #'normalize': True,
+      'caption': "True EndProcess #neq protonInelastic, p > 750 MeV/c"
+    },
+    {
       'name': "dEdxVRange_trkLengthlt0p5",
       'xtitle': "Residual range [cm]",
       'ytitle': "dE/dx [MeV/cm]",
@@ -168,6 +208,16 @@ if __name__ == "__main__":
       'var': "dEdx_raw:interpP*1000",
       'cuts': "plane==1",
       #'normalize': True,
+    },
+    {
+      'name': "dEdxVinterpP_interpDistancelt1cm",
+      'xtitle': "Interpolated True Momentum [MeV/c]",
+      'ytitle': "Reco dE/dx [MeV/cm]",
+      'binning': [150,0.,1500,300,0,30],
+      'var': "dEdx_raw:interpP*1000",
+      'cuts': "plane==1 && interpDistance < 1.",
+      #'normalize': True,
+      'caption': "Hit less than 1cm from true trajectory"
     },
     {
       'name': "dEdxVinterpKE",
