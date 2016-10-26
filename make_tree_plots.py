@@ -127,7 +127,7 @@ if __name__ == "__main__":
   evalFrac = 0.1
   fileConfigs = [
     {
-      'fn': "06_06_01_v3/Likelihood_p_v3.root",
+      'fn': "06_06_06v1/likelihood_protoDUNE_p_v1.root",
       'pdg': 2212,
       'name': "p",
       'title': "p",
@@ -136,7 +136,7 @@ if __name__ == "__main__":
       'nPlanes': 2,
     },
     {
-      'fn': "06_06_01_v3/Likelihood_pip_v3.root",
+      'fn': "06_06_06v1/likelihood_protoDUNE_pip_v1.root",
       'pdg': 211,
       'name': "pip",
       'title': "#pi^{+}",
@@ -144,30 +144,24 @@ if __name__ == "__main__":
       'color': root.kBlue,
       'nPlanes': 2,
     },
-    #{
-    #  #'fn': "isoInTPC/isoInTPC_mup_v3_dEdxAllTracksNoFile.root",
-    #  #'fn': "isoInTPC_v5files/isoInTPC_mup_v5_dEdxAllTracksNoFile.root",
-    #  #'fn': "isoInTPC_v5filesNew/isoInTPC_mup_v5_dEdxAllTracksNoFileNew.root",
-    #  'fn': "06_06_01_v2_likelihoodv2.4/likelihoodv2_mup_v2.root",
-    #  'pdg': -13,
-    #  'name': "mup",
-    #  'title': "#mu^{+}",
-    #  'caption': "#mu^{+} MC sample",
-    #  'color': root.kBlack,
-    #  'nPlanes': 2,
-    #},
-    #{
-    #  #'fn': "isoInTPC/isoInTPC_kp_v3_dEdxAllTracksNoFile.root",
-    #  #'fn': "isoInTPC_v5files/isoInTPC_kp_v5_dEdxAllTracksNoFile.root",
-    #  #'fn': "isoInTPC_v5filesNew/isoInTPC_kp_v5_dEdxAllTracksNoFileNew.root",
-    #  'fn': "06_06_01_v2_likelihoodv2.4/likelihoodv2_kp_v2.root",
-    #  'pdg': 321,
-    #  'name': "kp",
-    #  'title': "K^{+}",
-    #  'caption': "K^{+} MC sample",
-    #  'color': root.kGreen+1,
-    #  'nPlanes': 2,
-    #},
+    {
+      'fn': "06_06_06v1/likelihood_protoDUNE_mup_v1.root",
+      'pdg': -13,
+      'name': "mup",
+      'title': "#mu^{+}",
+      'caption': "#mu^{+} MC sample",
+      'color': root.kBlack,
+      'nPlanes': 2,
+    },
+    {
+      'fn': "06_06_06v1/likelihood_protoDUNE_kp_v1.root",
+      'pdg': 321,
+      'name': "kp",
+      'title': "K^{+}",
+      'caption': "K^{+} MC sample",
+      'color': root.kGreen+1,
+      'nPlanes': 2,
+    },
   ]
   
   ## Compute bin width from binning arg
@@ -183,7 +177,7 @@ if __name__ == "__main__":
   
   outfile = root.TFile("LHPID_Templates.root","recreate")
   likelihoodsPerPlane = []
-  for iPlane in range(2):
+  for iPlane in range(3):
     likelihoods = {}
     for fileConfig in fileConfigs:
       #hists[fileConfig['name']], likelihoods[fileConfig['name']] = makeLikelihood(fileConfig,binningArg,evalFrac)
@@ -296,6 +290,7 @@ if __name__ == "__main__":
   pFileConfig = [x for x in fileConfigs if x['name']=='p'][0]
   effVeffPlane0 = makeLLHREffVEffGraph(likelihoodsPerPlane[0]['pip'],likelihoodsPerPlane[0]['p'],pipFileConfig['tree'],pFileConfig['tree'],pipFileConfig['nSkip'],pFileConfig['nSkip'],0)
   effVeffPlane1 = makeLLHREffVEffGraph(likelihoodsPerPlane[1]['pip'],likelihoodsPerPlane[1]['p'],pipFileConfig['tree'],pFileConfig['tree'],pipFileConfig['nSkip'],pFileConfig['nSkip'],1)
+  effVeffPlane2 = makeLLHREffVEffGraph(likelihoodsPerPlane[2]['pip'],likelihoodsPerPlane[2]['p'],pipFileConfig['tree'],pFileConfig['tree'],pipFileConfig['nSkip'],pFileConfig['nSkip'],2)
   axisHist = Hist2D(1,0,1.0,1,0,1.0)
   setHistTitles(axisHist,"#pi^{+} Efficiency","Proton Efficiency")
   axisHist.Draw()
@@ -303,11 +298,15 @@ if __name__ == "__main__":
   effVeffPlane0.SetMarkerColor(root.kRed+1)
   effVeffPlane1.SetLineColor(root.kBlue)
   effVeffPlane1.SetMarkerColor(root.kBlue)
+  effVeffPlane2.SetLineColor(root.kGreen+1)
+  effVeffPlane2.SetMarkerColor(root.kGreen+1)
   effVeffPlane0.SetLineWidth(3)
   effVeffPlane1.SetLineWidth(3)
+  effVeffPlane2.SetLineWidth(3)
+  effVeffPlane2.Draw("L")
   effVeffPlane1.Draw("L")
   effVeffPlane0.Draw("L")
-  leg = drawNormalLegend([effVeffPlane0,effVeffPlane1],["Plane 0", "Plane 1"])
+  leg = drawNormalLegend([effVeffPlane0,effVeffPlane1,effVeffPlane2],["Plane 0", "Plane 1","Plane 2"])
   drawStandardCaptions(c,"#pi^{+}/p likelihood ratio")
   saveName = "effVeff_pip_p"
   c.SaveAs(saveName+".png")

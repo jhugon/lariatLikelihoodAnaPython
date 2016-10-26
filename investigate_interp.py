@@ -57,7 +57,7 @@ if __name__ == "__main__":
 
   fileConfigs = [
     {
-      'fn': "06_06_01_v3/Likelihood_p_v3.root",
+      'fn': "06_06_06v1/likelihood_protoDUNE_p_v1.root",
       'name': "",
     },
   ]
@@ -204,7 +204,7 @@ if __name__ == "__main__":
       'name': "dEdxVinterpP",
       'xtitle': "Interpolated True Momentum [MeV/c]",
       'ytitle': "Reco dE/dx [MeV/cm]",
-      'binning': [150,0.,1500,30,0,30],
+      'binning': [200,0.,2000,300,0,30],
       'var': "dEdx_raw:interpP*1000",
       'cuts': "plane==1",
       #'normalize': True,
@@ -213,7 +213,7 @@ if __name__ == "__main__":
       'name': "dEdxVinterpP_interpDistancelt1cm",
       'xtitle': "Interpolated True Momentum [MeV/c]",
       'ytitle': "Reco dE/dx [MeV/cm]",
-      'binning': [150,0.,1500,300,0,30],
+      'binning': [200,0.,2000,300,0,30],
       'var': "dEdx_raw:interpP*1000",
       'cuts': "plane==1 && interpDistance < 1.",
       #'normalize': True,
@@ -324,7 +324,7 @@ if __name__ == "__main__":
     },
     {
       'name': "interpPVtrueP",
-      'binning': [150,0,1500,150,0,1500],
+      'binning': [200,0.,2000,200,0,2000],
       'ytitle': "Interpolated True Momentum [MeV/c]",
       'xtitle': "Initial True Momentum [MeV/c]",
       'var': "interpP*1000:true_p*1000",
@@ -333,7 +333,7 @@ if __name__ == "__main__":
     },
     {
       'name': "trueTrajPVtrueP",
-      'binning': [150,0,1500,150,0,1500],
+      'binning': [200,0.,2000,200,0,2000],
       'ytitle': "True Trajectory Momentum [MeV/c]",
       'xtitle': "Initial True Momentum [MeV/c]",
       'var': "true_trajp*1000:true_p*1000",
