@@ -335,7 +335,7 @@ if __name__ == "__main__":
     # pipLLH difference integral hists
 
     pipLHDiffInts = []
-    for h in reversed(pipLHDiffs):
+    for h in pipLHDiffs:
       h = getIntegralHist(h)
       pipLHDiffInts.append(h)
     axisHist = makeStdAxisHist(pipLHDiffInts,freeTopSpace=0.35)
