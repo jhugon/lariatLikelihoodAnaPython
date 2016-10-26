@@ -57,7 +57,7 @@ if __name__ == "__main__":
 
   fileConfigs = [
     {
-      'fn': "06_06_01_v2_likelihoodv2.4/likelihoodv2_to1500MeV_p_v2.root",
+      'fn': "06_06_01_v3/Likelihood_p_v3.root",
       'name': "",
     },
   ]
@@ -368,7 +368,7 @@ if __name__ == "__main__":
       #'normalize': True,
     },
   ]
-  plotOneHistOnePlot(fileConfigs,histConfigs,c,"dEdxAllTracksNoFile/tree",outPrefix="checkinterp_")
+  plotOneHistOnePlot(fileConfigs,histConfigs,c,"likelihoodpidmaker/tree",outPrefix="checkinterp_")
 
   histConfigs = [
     {
@@ -404,7 +404,7 @@ if __name__ == "__main__":
       'normalize': True,
     },
   ]
-  plotManyHistsOnePlot(fileConfigs,histConfigs,c,"dEdxAllTracksNoFile/tree",outPrefix="checkinterpdEdx_")
+  plotManyHistsOnePlot(fileConfigs,histConfigs,c,"likelihoodpidmaker/tree",outPrefix="checkinterpdEdx_")
 
   histConfigs = [
     {
@@ -449,7 +449,7 @@ if __name__ == "__main__":
       'logy': True,
     },
   ]
-  plotManyHistsOnePlot(fileConfigs,histConfigs,c,"dEdxAllTracksNoFile/tree",outPrefix="checksmallKE_interpDistance")
+  plotManyHistsOnePlot(fileConfigs,histConfigs,c,"likelihoodpidmaker/tree",outPrefix="checksmallKE_interpDistance")
 
   histConfigs = [
     {
@@ -485,7 +485,7 @@ if __name__ == "__main__":
       'normalize': True,
     },
   ]
-  plotManyHistsOnePlot(fileConfigs,histConfigs,c,"dEdxAllTracksNoFile/tree",outPrefix="checksmallKE_interpDistanceToClosestTrajPoint")
+  plotManyHistsOnePlot(fileConfigs,histConfigs,c,"likelihoodpidmaker/tree",outPrefix="checksmallKE_interpDistanceToClosestTrajPoint")
 
   histConfigs = [
     {
@@ -510,7 +510,7 @@ if __name__ == "__main__":
       #'normalize': True,
     },
   ]
-  plotManyHistsOnePlot(fileConfigs,histConfigs,c,"dEdxAllTracksNoFile/tree",outPrefix="checkEndProcess_trueP")
+  plotManyHistsOnePlot(fileConfigs,histConfigs,c,"likelihoodpidmaker/tree",outPrefix="checkEndProcess_trueP")
   histConfigs = [
     {
       'name': "KEleq1MeV",
@@ -534,4 +534,4 @@ if __name__ == "__main__":
       #'normalize': True,
     },
   ]
-  plotManyHistsOnePlot(fileConfigs,histConfigs,c,"dEdxAllTracksNoFile/tree",outPrefix="checkEndProcess_trueKE")
+  plotManyHistsOnePlot(fileConfigs,histConfigs,c,"likelihoodpidmaker/tree",outPrefix="checkEndProcess_trueKE")

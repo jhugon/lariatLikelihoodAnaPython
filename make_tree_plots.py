@@ -21,7 +21,7 @@ def makeLikelihood(fileConfig,iPlane,binningArg=[325,0.,26.,200,0.,100.],evalFra
   ## Compute bin width from binning arg
   binWidthX = (float(binningArg[2])-binningArg[1])/binningArg[0]
   binWidthY = (float(binningArg[5])-binningArg[4])/binningArg[3]
-  binCaption = "Bin size: {0:.1f} cm #times {1:.1f} MeV/cm".format(binWidthX,binWidthY)
+  binCaption = "Bin size: {0:.2f} cm #times {1:.2f} MeV/cm".format(binWidthX,binWidthY)
 
   setupCOLZFrame(c)
   tree = fileConfig['tree']
@@ -123,16 +123,11 @@ def makeLLHREffVEffGraph(likelihoodHistNum,likelihoodHistDenom,treeX,treeY,nMaxX
 
 if __name__ == "__main__":
 
-  binningArg = [325,0.,26.,200,0.,100.]
+  binningArg = [520,0.,26.,400,0.,100.]
   evalFrac = 0.1
   fileConfigs = [
     {
-      #'fn': "isoInTPC/isoInTPC_p_v3_dEdxAllTracksNoFile.root",
-      #'fn': "isoInTPC_v5files/isoInTPC_p_v5_dEdxAllTracksNoFile.root",
-      #'fn': "isoInTPC_v5filesNew/isoInTPC_p_v5_dEdxAllTracksNoFileNew.root",
-      #'fn': "isoInTPC_v5filesNew/isoInTPC_to1500MeV_p_v5_dEdxAllTracksNoFile.root",
-      #'fn': "06_06_01_v2_likelihoodv2.1/dEdxAllTracksNoFileV2.1_to1500MeV_p_v2.root",
-      'fn': "06_06_01_v2_likelihoodv2.4/likelihoodv2_p_v2.root",
+      'fn': "06_06_01_v3/Likelihood_p_v3.root",
       'pdg': 2212,
       'name': "p",
       'title': "p",
@@ -141,11 +136,7 @@ if __name__ == "__main__":
       'nPlanes': 2,
     },
     {
-      #'fn': "isoInTPC/isoInTPC_pip_v3_dEdxAllTracksNoFile.root",
-      #'fn': "isoInTPC_v5files/isoInTPC_pip_v5_dEdxAllTracksNoFile.root",
-      #'fn': "isoInTPC_v5filesNew/isoInTPC_pip_v5_dEdxAllTracksNoFileNew.root",
-      #'fn': "06_06_01_v2_likelihoodv2.1/dEdxAllTracksNoFileV2.1_pip_v2.root",
-      'fn': "06_06_01_v2_likelihoodv2.4/likelihoodv2_pip_v2.root",
+      'fn': "06_06_01_v3/Likelihood_pip_v3.root",
       'pdg': 211,
       'name': "pip",
       'title': "#pi^{+}",
@@ -153,30 +144,30 @@ if __name__ == "__main__":
       'color': root.kBlue,
       'nPlanes': 2,
     },
-    {
-      #'fn': "isoInTPC/isoInTPC_mup_v3_dEdxAllTracksNoFile.root",
-      #'fn': "isoInTPC_v5files/isoInTPC_mup_v5_dEdxAllTracksNoFile.root",
-      #'fn': "isoInTPC_v5filesNew/isoInTPC_mup_v5_dEdxAllTracksNoFileNew.root",
-      'fn': "06_06_01_v2_likelihoodv2.4/likelihoodv2_mup_v2.root",
-      'pdg': -13,
-      'name': "mup",
-      'title': "#mu^{+}",
-      'caption': "#mu^{+} MC sample",
-      'color': root.kBlack,
-      'nPlanes': 2,
-    },
-    {
-      #'fn': "isoInTPC/isoInTPC_kp_v3_dEdxAllTracksNoFile.root",
-      #'fn': "isoInTPC_v5files/isoInTPC_kp_v5_dEdxAllTracksNoFile.root",
-      #'fn': "isoInTPC_v5filesNew/isoInTPC_kp_v5_dEdxAllTracksNoFileNew.root",
-      'fn': "06_06_01_v2_likelihoodv2.4/likelihoodv2_kp_v2.root",
-      'pdg': 321,
-      'name': "kp",
-      'title': "K^{+}",
-      'caption': "K^{+} MC sample",
-      'color': root.kGreen+1,
-      'nPlanes': 2,
-    },
+    #{
+    #  #'fn': "isoInTPC/isoInTPC_mup_v3_dEdxAllTracksNoFile.root",
+    #  #'fn': "isoInTPC_v5files/isoInTPC_mup_v5_dEdxAllTracksNoFile.root",
+    #  #'fn': "isoInTPC_v5filesNew/isoInTPC_mup_v5_dEdxAllTracksNoFileNew.root",
+    #  'fn': "06_06_01_v2_likelihoodv2.4/likelihoodv2_mup_v2.root",
+    #  'pdg': -13,
+    #  'name': "mup",
+    #  'title': "#mu^{+}",
+    #  'caption': "#mu^{+} MC sample",
+    #  'color': root.kBlack,
+    #  'nPlanes': 2,
+    #},
+    #{
+    #  #'fn': "isoInTPC/isoInTPC_kp_v3_dEdxAllTracksNoFile.root",
+    #  #'fn': "isoInTPC_v5files/isoInTPC_kp_v5_dEdxAllTracksNoFile.root",
+    #  #'fn': "isoInTPC_v5filesNew/isoInTPC_kp_v5_dEdxAllTracksNoFileNew.root",
+    #  'fn': "06_06_01_v2_likelihoodv2.4/likelihoodv2_kp_v2.root",
+    #  'pdg': 321,
+    #  'name': "kp",
+    #  'title': "K^{+}",
+    #  'caption': "K^{+} MC sample",
+    #  'color': root.kGreen+1,
+    #  'nPlanes': 2,
+    #},
   ]
   
   ## Compute bin width from binning arg
@@ -186,7 +177,7 @@ if __name__ == "__main__":
   c = root.TCanvas()
   for fileConfig in fileConfigs:
     f = root.TFile(fileConfig['fn'])
-    tree = f.Get("dEdxAllTracksNoFile/tree")
+    tree = f.Get("likelihoodpidmaker/tree")
     fileConfig['f'] = f
     fileConfig['tree'] = tree
   
