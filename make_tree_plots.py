@@ -107,19 +107,95 @@ def makeLLHREffVEffGraph(likelihoodHistNum,likelihoodHistDenom,treeX,treeY,nMaxX
   #print min(valuesX), max(valuesX)
   #print min(valuesY), max(valuesY)
   efficiency = root.TGraph()
-  for iX in range(nMaxX):
-    effX = iX/float(nMaxX)
+  effsX, valuesX = findEffs(likelihoodHistNum,likelihoodHistDenom,treeX,nMaxX,iPlane)
+  effsY, valuesY = findEffs(likelihoodHistNum,likelihoodHistDenom,treeY,nMaxY,iPlane)
+  nX = len(effsX)
+  nY = len(effsY)
+  efficiency.SetPoint(0,0,0)
+  for iX in range(nX):
+    effX = effsX[iX]
     x = valuesX[iX]
     #print x
     effY = 0.
-    for iY in range(nMaxY):
+    for iY in range(nY):
       y = valuesY[iY]
       #print "    ",y
       if y <= x:
-        effY = iY/float(nMaxY)
+        effY = effsY[iY]
         break
-    efficiency.SetPoint(iX,effX,effY)
+    efficiency.SetPoint(iX+1,effX,effY)
+  efficiency.SetPoint(nX+1,1,1)
+  print("For plane: {}".format(iPlane))
+  printed65 = False
+  printed80 = False
+  printed90 = False
+  printed95 = False
+  printed99 = False
+  for eff, val in zip(effsX,valuesX):
+    if not printed65 and eff >= 0.65:
+        effYCut = None
+        for effY, valY in zip(effsY,valuesY):
+            if valY >= val:
+                effYCut = effY
+                break
+        print("cut value: {}, X eff: {}, Y eff: {}".format(val,eff,effYCut))
+        printed65 = True
+    if not printed80 and eff >= 0.8:
+        effYCut = None
+        for effY, valY in zip(effsY,valuesY):
+            if valY <= val:
+                effYCut = effY
+                break
+        print("cut value: {}, X eff: {}, Y eff: {}".format(val,eff,effYCut))
+        printed80 = True
+    if not printed90 and eff >= 0.9:
+        effYCut = None
+        for effY, valY in zip(effsY,valuesY):
+            if valY <= val:
+                effYCut = effY
+                break
+        print("cut value: {}, X eff: {}, Y eff: {}".format(val,eff,effYCut))
+        printed90 = True
+    if not printed95 and eff >= 0.95:
+        effYCut = None
+        for effY, valY in zip(effsY,valuesY):
+            if valY <= val:
+                effYCut = effY
+                break
+        print("cut value: {}, X eff: {}, Y eff: {}".format(val,eff,effYCut))
+        printed95 = True
+    if not printed99 and eff >= 0.99:
+        effYCut = None
+        for effY, valY in zip(effsY,valuesY):
+            if valY <= val:
+                effYCut = effY
+                break
+        print("cut value: {}, X eff: {}, Y eff: {}".format(val,eff,effYCut))
+        printed99 = True
+        break
   return efficiency
+
+def findEffs(likelihoodHistNum,likelihoodHistDenom,tree,nMax,iPlane):
+  """
+  Returns a list of efficiency values and a list of the
+  corresponding cut values
+  """
+  values = []
+  n = min(nMax,tree.GetEntries())
+  for iEntry in range(n):
+    tree.GetEntry(iEntry)
+    llhNum = evalLogLikelihood(likelihoodHistNum,tree,iPlane)
+    llhDenom = evalLogLikelihood(likelihoodHistDenom,tree,iPlane)
+    llhr = llhNum-llhDenom
+    values.append(llhr)
+  values.sort()
+  values.reverse()
+  efficiency = []
+  for i in range(n):
+    eff = (i+1)/float(n)
+    x = values[i]
+    efficiency.append(eff)
+  return efficiency, values
 
 if __name__ == "__main__":
 
@@ -194,7 +270,8 @@ if __name__ == "__main__":
     ## Now Save Histogram File
     ## Now Evaluate
     #pipLHDiffs = [Hist(200,-1000,1000) for f in fileConfigs]
-    pipLHDiffs = [Hist(100,-750,750) for f in fileConfigs]
+    #pipLHDiffs = [Hist(100,-750,750) for f in fileConfigs]
+    pipLHDiffs = [Hist(100,-50,50) for f in fileConfigs]
     for fileConfig,pipLHDiff in zip(fileConfigs,pipLHDiffs):
       tree = fileConfig['tree']
       hists = []
@@ -294,20 +371,20 @@ if __name__ == "__main__":
   # Eff v Eff Curves
   pipFileConfig = [x for x in fileConfigs if x['name']=='pip'][0]
   pFileConfig = [x for x in fileConfigs if x['name']=='p'][0]
-  effVeffPlane0 = makeLLHREffVEffGraph(likelihoodsPerPlane[0]['pip'],likelihoodsPerPlane[0]['p'],pipFileConfig['tree'],pFileConfig['tree'],pipFileConfig['nSkip'],pFileConfig['nSkip'],0)
+#  effVeffPlane0 = makeLLHREffVEffGraph(likelihoodsPerPlane[0]['pip'],likelihoodsPerPlane[0]['p'],pipFileConfig['tree'],pFileConfig['tree'],pipFileConfig['nSkip'],pFileConfig['nSkip'],0)
   effVeffPlane1 = makeLLHREffVEffGraph(likelihoodsPerPlane[1]['pip'],likelihoodsPerPlane[1]['p'],pipFileConfig['tree'],pFileConfig['tree'],pipFileConfig['nSkip'],pFileConfig['nSkip'],1)
   axisHist = Hist2D(1,0,1.0,1,0,1.0)
   setHistTitles(axisHist,"#pi^{+} Efficiency","Proton Efficiency")
   axisHist.Draw()
-  effVeffPlane0.SetLineColor(root.kRed+1)
-  effVeffPlane0.SetMarkerColor(root.kRed+1)
+#  effVeffPlane0.SetLineColor(root.kRed+1)
+#  effVeffPlane0.SetMarkerColor(root.kRed+1)
   effVeffPlane1.SetLineColor(root.kBlue)
   effVeffPlane1.SetMarkerColor(root.kBlue)
-  effVeffPlane0.SetLineWidth(3)
+#  effVeffPlane0.SetLineWidth(3)
   effVeffPlane1.SetLineWidth(3)
   effVeffPlane1.Draw("L")
-  effVeffPlane0.Draw("L")
-  leg = drawNormalLegend([effVeffPlane0,effVeffPlane1],["Plane 0", "Plane 1"])
+#  effVeffPlane0.Draw("L")
+#  leg = drawNormalLegend([effVeffPlane0,effVeffPlane1],["Plane 0", "Plane 1"])
   drawStandardCaptions(c,"#pi^{+}/p likelihood ratio")
   saveName = "effVeff_pip_p"
   c.SaveAs(saveName+".png")
