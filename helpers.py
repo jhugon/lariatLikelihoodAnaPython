@@ -360,10 +360,13 @@ def plotOneHistOnePlot(fileConfigs,histConfigs,canvas,treename,outPrefix="",outS
         their low bin edges.
     title: (unused)
     addFriend: add friend tree to main tree. Should be a length 2 list [treename,filename]
-    profileX: if True, draw profileX of 2D hist
-    profileY: if True, draw profileY of 2D hist
-    profileXtoo: if True, draw profileX of 2D hist, on top of 2D hist
-    profileYtoo: if True, draw profileY of 2D hist, on top of 2D hist
+    efficiencyDenomCuts: If this is a string, it makes this histogram an efficiency. 
+        Use this cut string to create the denominator histogram. The main histogram will be
+        the numerator in a TEfficiency.
+    profileX: if True, draw profileX of 2D hist (not yet implemented)
+    profileY: if True, draw profileY of 2D hist (not yet implemented)
+    profileXtoo: if True, draw profileX of 2D hist, on top of 2D hist (not yet implemented)
+    profileYtoo: if True, draw profileY of 2D hist, on top of 2D hist (not yet implemented)
   """
   
   for fileConfig in fileConfigs:
@@ -439,17 +442,25 @@ def plotOneHistOnePlot(fileConfigs,histConfigs,canvas,treename,outPrefix="",outS
         hist.SetLineColor(histConfig['color'])
       varAndHist = var + " >> " + hist.GetName()
       tree.Draw(varAndHist,thiscuts,"",nMax)
-      scaleFactor = 1.
-      if "scaleFactor" in fileConfig: scaleFactor = fileConfig['scaleFactor']
-      hist.Scale(scaleFactor)
-      if "normToBinWidth" in histConfig and histConfig["normToBinWidth"]:
-        normToBinWidth(hist)
-      if "normalize" in histConfig and histConfig['normalize']:
-        integral = hist.Integral()
-        if integral != 0.:
-          hist.Scale(1./integral)
-      if "integral" in histConfig and histConfig['integral']:
-        hist = getIntegralHist(hist)
+      if "efficiencyDenomCuts" in fileConfig and type(fileConfig["efficiencyDenomCuts"]) == str:
+        denomHist = hist.Clone(hist.GetName()+"_denom")
+        denomHist.Reset()
+        varAndHistDenom = var + " >> " + denomHist.GetName()
+        tree.Draw(varAndHistDenom,fileConfig["efficiencyDenomCuts"],"",nMax)
+        teff = root.TEfficiency(hist,denomHist)
+        hist = teff
+      else:
+        scaleFactor = 1.
+        if "scaleFactor" in fileConfig: scaleFactor = fileConfig['scaleFactor']
+        hist.Scale(scaleFactor)
+        if "normToBinWidth" in histConfig and histConfig["normToBinWidth"]:
+          normToBinWidth(hist)
+        if "normalize" in histConfig and histConfig['normalize']:
+          integral = hist.Integral()
+          if integral != 0.:
+            hist.Scale(1./integral)
+        if "integral" in histConfig and histConfig['integral']:
+          hist = getIntegralHist(hist)
       setHistTitles(hist,xtitle,ytitle,ztitle)
       canvas.SetLogy(logy)
       canvas.SetLogx(logx)

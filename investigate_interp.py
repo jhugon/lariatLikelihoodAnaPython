@@ -57,7 +57,7 @@ if __name__ == "__main__":
 
   fileConfigs = [
     {
-      'fn': "06_06_01_v2_likelihoodv2.2/dEdxAllTracksNoFileV2.2_to1500MeV_p_v2.root",
+      'fn': "06_06_01_v2_likelihoodv2.4/likelihoodv2_to1500MeV_p_v2.root",
       'name': "",
     },
   ]
