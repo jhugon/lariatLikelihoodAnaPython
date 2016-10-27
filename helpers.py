@@ -61,6 +61,9 @@ def plotManyFilesOnePlot(fileConfigs,histConfigs,canvas,treename,outPrefix="",ou
     integral: if True, makes each bin content Nevents for X >= bin low edge
     title: (unused)
     color: (unused)
+    efficiencyDenomCuts: If this is a string, it makes this histogram an efficiency. 
+        Use this cut string to create the denominator histogram. The main histogram will be
+        the numerator in a TEfficiency.
   """
   
   for fileConfig in fileConfigs:
@@ -122,17 +125,25 @@ def plotManyFilesOnePlot(fileConfigs,histConfigs,canvas,treename,outPrefix="",ou
       if "cuts" in fileConfig:
         thiscuts += fileConfig['cuts']
       tree.Draw(varAndHist,thiscuts,"",nMax)
-      scaleFactor = 1.
-      if "scaleFactor" in fileConfig: scaleFactor = fileConfig['scaleFactor']
-      hist.Scale(scaleFactor)
-      if "normToBinWidth" in histConfig and histConfig["normToBinWidth"]:
-        normToBinWidth(hist)
-      if "normalize" in histConfig and histConfig['normalize']:
-        integral = hist.Integral()
-        if integral != 0.:
-          hist.Scale(1./integral)
-      if "integral" in histConfig and histConfig['integral']:
-        hist = getIntegralHist(hist)
+      if "efficiencyDenomCuts" in fileConfig and type(fileConfig["efficiencyDenomCuts"]) == str:
+        denomHist = hist.Clone(hist.GetName()+"_denom")
+        denomHist.Reset()
+        varAndHistDenom = var + " >> " + denomHist.GetName()
+        tree.Draw(varAndHistDenom,fileConfig["efficiencyDenomCuts"],"",nMax)
+        teff = root.TEfficiency(hist,denomHist)
+        hist = teff
+      else:
+        scaleFactor = 1.
+        if "scaleFactor" in fileConfig: scaleFactor = fileConfig['scaleFactor']
+        hist.Scale(scaleFactor)
+        if "normToBinWidth" in histConfig and histConfig["normToBinWidth"]:
+          normToBinWidth(hist)
+        if "normalize" in histConfig and histConfig['normalize']:
+          integral = hist.Integral()
+          if integral != 0.:
+            hist.Scale(1./integral)
+        if "integral" in histConfig and histConfig['integral']:
+          hist = getIntegralHist(hist)
       hists.append(hist)
     canvas.SetLogy(logy)
     canvas.SetLogx(logx)
@@ -195,6 +206,9 @@ def plotManyHistsOnePlot(fileConfigs,histConfigs,canvas,treename,outPrefix="",ou
         scaleFactor)
     normalize: if True normalize histogram (after normToBinWidth)
     integral: if True, makes each bin content Nevents for X >= bin low edge
+    efficiencyDenomCuts: If this is a string, it makes this histogram an efficiency. 
+        Use this cut string to create the denominator histogram. The main histogram will be
+        the numerator in a TEfficiency.
   """
   
   for fileConfig in fileConfigs:
@@ -282,17 +296,25 @@ def plotManyHistsOnePlot(fileConfigs,histConfigs,canvas,treename,outPrefix="",ou
         hist.SetLineColor(histConfig['color'])
       varAndHist = var + " >> " + hist.GetName()
       tree.Draw(varAndHist,thiscuts,"",nMax)
-      scaleFactor = 1.
-      if "scaleFactor" in fileConfig: scaleFactor = fileConfig['scaleFactor']
-      hist.Scale(scaleFactor)
-      if "normToBinWidth" in histConfig and histConfig["normToBinWidth"]:
-        normToBinWidth(hist)
-      if "normalize" in histConfig and histConfig['normalize']:
-        integral = hist.Integral()
-        if integral != 0.:
-          hist.Scale(1./integral)
-      if "integral" in histConfig and histConfig['integral']:
-        hist = getIntegralHist(hist)
+      if "efficiencyDenomCuts" in fileConfig and type(fileConfig["efficiencyDenomCuts"]) == str:
+        denomHist = hist.Clone(hist.GetName()+"_denom")
+        denomHist.Reset()
+        varAndHistDenom = var + " >> " + denomHist.GetName()
+        tree.Draw(varAndHistDenom,fileConfig["efficiencyDenomCuts"],"",nMax)
+        teff = root.TEfficiency(hist,denomHist)
+        hist = teff
+      else:
+        scaleFactor = 1.
+        if "scaleFactor" in fileConfig: scaleFactor = fileConfig['scaleFactor']
+        hist.Scale(scaleFactor)
+        if "normToBinWidth" in histConfig and histConfig["normToBinWidth"]:
+          normToBinWidth(hist)
+        if "normalize" in histConfig and histConfig['normalize']:
+          integral = hist.Integral()
+          if integral != 0.:
+            hist.Scale(1./integral)
+        if "integral" in histConfig and histConfig['integral']:
+          hist = getIntegralHist(hist)
       hists.append(hist)
     canvas.SetLogy(logy)
     canvas.SetLogx(logx)
