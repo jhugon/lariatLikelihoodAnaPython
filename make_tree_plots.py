@@ -203,7 +203,7 @@ if __name__ == "__main__":
   evalFrac = 0.1
   fileConfigs = [
     {
-      'fn': "06_15_00_v1/Likelihood_p_v1.root",
+      'fn': "06_15_00_v2/Likelihood_p_v2.root",
       'pdg': 2212,
       'name': "p",
       'title': "p",
@@ -212,7 +212,7 @@ if __name__ == "__main__":
       'nPlanes': 2,
     },
     {
-      'fn': "06_15_00_v1/Likelihood_pip_v1.root",
+      'fn': "06_15_00_v2/Likelihood_pip_v2.root",
       'pdg': 211,
       'name': "pip",
       'title': "#pi^{+}",
@@ -220,24 +220,24 @@ if __name__ == "__main__":
       'color': root.kBlue,
       'nPlanes': 2,
     },
-    {
-      'fn': "06_15_00_v1/Likelihood_mup_v1.root",
-      'pdg': -13,
-      'name': "mup",
-      'title': "#mu^{+}",
-      'caption': "#mu^{+} MC sample",
-      'color': root.kBlack,
-      'nPlanes': 2,
-    },
-    {
-      'fn': "06_15_00_v1/Likelihood_kp_v1.root",
-      'pdg': 321,
-      'name': "kp",
-      'title': "K^{+}",
-      'caption': "K^{+} MC sample",
-      'color': root.kGreen+1,
-      'nPlanes': 2,
-    },
+#    {
+#      'fn': "06_15_00_v2/Likelihood_mup_v2.root",
+#      'pdg': -13,
+#      'name': "mup",
+#      'title': "#mu^{+}",
+#      'caption': "#mu^{+} MC sample",
+#      'color': root.kBlack,
+#      'nPlanes': 2,
+#    },
+#    {
+#      'fn': "06_15_00_v2/Likelihood_kp_v2.root",
+#      'pdg': 321,
+#      'name': "kp",
+#      'title': "K^{+}",
+#      'caption': "K^{+} MC sample",
+#      'color': root.kGreen+1,
+#      'nPlanes': 2,
+#    },
   ]
   
   ## Compute bin width from binning arg
@@ -343,6 +343,18 @@ if __name__ == "__main__":
     c.SaveAs(saveName+".png")
     c.SaveAs(saveName+".pdf")
 
+    c.SetLogy(True)
+    axisHist = makeStdAxisHist(pipLHDiffInts,logy=True,ylim=[1e-5,1e2])
+    setHistTitles(axisHist,"log(L_{#pi^{+}})-log(L_{p})","Efficiency for log(L_{#pi^{+}})-log(L_{p}) #geq X")
+    axisHist.Draw()
+    for h in reversed(pipLHDiffInts):
+      h.Draw("histsame")
+    leg = drawNormalLegend(pipLHDiffInts,["{} MC, {} events".format(x['title'],x['nSkip']) for x in fileConfigs])
+    drawStandardCaptions(c,"Plane {}".format(iPlane))
+    saveName = "LLHR_Effs_Log_plane{0}".format(iPlane)
+    c.SaveAs(saveName+".png")
+    c.SaveAs(saveName+".pdf")
+    c.SetLogy(False)
 
     ###############################################3
     ## Investigate track pitch
