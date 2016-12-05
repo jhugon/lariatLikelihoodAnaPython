@@ -203,7 +203,7 @@ if __name__ == "__main__":
   evalFrac = 0.1
   fileConfigs = [
     {
-      'fn': "06_06_01_v3/Likelihood_p_v3.root",
+      'fn': "06_15_00_v1/Likelihood_p_v1.root",
       'pdg': 2212,
       'name': "p",
       'title': "p",
@@ -212,7 +212,7 @@ if __name__ == "__main__":
       'nPlanes': 2,
     },
     {
-      'fn': "06_06_01_v3/Likelihood_pip_v3.root",
+      'fn': "06_15_00_v1/Likelihood_pip_v1.root",
       'pdg': 211,
       'name': "pip",
       'title': "#pi^{+}",
@@ -220,30 +220,24 @@ if __name__ == "__main__":
       'color': root.kBlue,
       'nPlanes': 2,
     },
-    #{
-    #  #'fn': "isoInTPC/isoInTPC_mup_v3_dEdxAllTracksNoFile.root",
-    #  #'fn': "isoInTPC_v5files/isoInTPC_mup_v5_dEdxAllTracksNoFile.root",
-    #  #'fn': "isoInTPC_v5filesNew/isoInTPC_mup_v5_dEdxAllTracksNoFileNew.root",
-    #  'fn': "06_06_01_v2_likelihoodv2.4/likelihoodv2_mup_v2.root",
-    #  'pdg': -13,
-    #  'name': "mup",
-    #  'title': "#mu^{+}",
-    #  'caption': "#mu^{+} MC sample",
-    #  'color': root.kBlack,
-    #  'nPlanes': 2,
-    #},
-    #{
-    #  #'fn': "isoInTPC/isoInTPC_kp_v3_dEdxAllTracksNoFile.root",
-    #  #'fn': "isoInTPC_v5files/isoInTPC_kp_v5_dEdxAllTracksNoFile.root",
-    #  #'fn': "isoInTPC_v5filesNew/isoInTPC_kp_v5_dEdxAllTracksNoFileNew.root",
-    #  'fn': "06_06_01_v2_likelihoodv2.4/likelihoodv2_kp_v2.root",
-    #  'pdg': 321,
-    #  'name': "kp",
-    #  'title': "K^{+}",
-    #  'caption': "K^{+} MC sample",
-    #  'color': root.kGreen+1,
-    #  'nPlanes': 2,
-    #},
+    {
+      'fn': "06_15_00_v1/Likelihood_mup_v1.root",
+      'pdg': -13,
+      'name': "mup",
+      'title': "#mu^{+}",
+      'caption': "#mu^{+} MC sample",
+      'color': root.kBlack,
+      'nPlanes': 2,
+    },
+    {
+      'fn': "06_15_00_v1/Likelihood_kp_v1.root",
+      'pdg': 321,
+      'name': "kp",
+      'title': "K^{+}",
+      'caption': "K^{+} MC sample",
+      'color': root.kGreen+1,
+      'nPlanes': 2,
+    },
   ]
   
   ## Compute bin width from binning arg
