@@ -127,7 +127,7 @@ if __name__ == "__main__":
   evalFrac = 0.1
   fileConfigs = [
     {
-      'fn': "06_06_06v1/likelihood_protoDUNE_p_v1.root",
+      'fn': "06_18_01v2/iso_p_v2.root",
       'pdg': 2212,
       'name': "p",
       'title': "p",
@@ -136,7 +136,7 @@ if __name__ == "__main__":
       'nPlanes': 2,
     },
     {
-      'fn': "06_06_06v1/likelihood_protoDUNE_pip_v1.root",
+      'fn': "06_18_01v2/iso_pip_v2.root",
       'pdg': 211,
       'name': "pip",
       'title': "#pi^{+}",
