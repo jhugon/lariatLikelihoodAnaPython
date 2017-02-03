@@ -29,7 +29,7 @@ def makeLikelihood(fileConfig,iPlane,binningArg=[325,0.,26.,200,0.,100.],evalFra
   nSkip = int(evalFrac*nEntries)
   fileConfig['nSkip'] = nSkip
   nPlanes = fileConfig['nPlanes']
-  cuts = "pdg == {0:d} && plane == {1:d}".format(fileConfig['pdg'],iPlane)
+  cuts = "pdg == {0:d} && plane == {1:d} && resRange > 1.".format(fileConfig['pdg'],iPlane)
 #  if fileConfig['name'] == 'p':
 #    cuts += "&& true_p < 0.75"
 #    cuts += "&& true_p > 0.75"
@@ -61,7 +61,8 @@ def makeLikelihood(fileConfig,iPlane,binningArg=[325,0.,26.,200,0.,100.],evalFra
     likelihood.Scale(1./likelihoodIntegral)
 
   setHistTitles(likelihood,"Residual Range [cm]","dE/dx [MeV/cm]")
-  setHistRange(likelihood,0,20,0,30)
+  #setHistRange(likelihood,0,20,0,30)
+  likelihood.GetYaxis().SetRangeUser(0,30)
   likelihood.Draw("colz")
   drawStandardCaptions(c,"Likelihood for {}, plane {}".format(fileConfig["title"],iPlane),captionright2="Events: {0:.0f}".format(nEntries-nSkip),captionright3="Entries: {0:.0f}".format(likelihood.GetEntries()),captionright1=binCaption,colorInside=root.kWhite)
   plotfn = "LH_{}_plane{}.png".format(fileConfig['name'],iPlane)
@@ -75,14 +76,31 @@ def evalLogLikelihood(likelihoodHist,tree,iPlane):
   You must have called tree.GetEntry(i) for the entry you want
   """
   result = 0.
+  atLeastOneGoodHit = False
+  rrNbins = likelihoodHist.GetXaxis().GetNbins()
+  rrMin = likelihoodHist.GetXaxis().GetBinLowEdge(0)
+  rrMax = likelihoodHist.GetXaxis().GetBinUpEdge(rrNbins)
+  dEdxNbins = likelihoodHist.GetYaxis().GetNbins()
+  dEdxMin = likelihoodHist.GetYaxis().GetBinLowEdge(0)
+  dEdxMax = likelihoodHist.GetYaxis().GetBinUpEdge(dEdxNbins)
   dEdxVec = tree.dEdx_raw
   if MULTIPLYBYPITCH:
     dEdxVec = tree.dEdx_pitchCorr
   for rr, dEdx, plane in zip(tree.resRange,dEdxVec,tree.plane):
     if iPlane == plane:
-      iBin = likelihoodHist.FindBin(rr,dEdx)
-      lh = likelihoodHist.GetBinContent(iBin)
-      result += log(lh)
+      if rr > rrMin and rr < rrMax and dEdx > dEdxMin and dEdx < dEdxMax:
+        iBin = likelihoodHist.FindBin(rr,dEdx)
+        lh = likelihoodHist.GetBinContent(iBin)
+        if lh > 1.:
+          print("Warning: likelihood greater than 1: {}, for rr and dEdx: {} {}".format(lh,rr,dEdx))
+        result += log(lh)
+        atLeastOneGoodHit = True
+  if not atLeastOneGoodHit:
+    result = -1e15
+  if result > 0.:
+    print(result)
+    print(tree.resRange)
+    print(dEdxVec)
   return result
 
 def makeLLHREffVEffGraph(likelihoodHistNum,likelihoodHistDenom,treeX,treeY,nMaxX,nMaxY,iPlane):
@@ -199,7 +217,7 @@ def findEffs(likelihoodHistNum,likelihoodHistDenom,tree,nMax,iPlane):
 
 if __name__ == "__main__":
 
-  binningArg = [520,0.,26.,400,0.,100.]
+  binningArg = [10*50,1.,50.,400,0.,100.]
   evalFrac = 0.1
   fileConfigs = [
     {
@@ -221,7 +239,7 @@ if __name__ == "__main__":
       'nPlanes': 2,
     },
     {
-      'fn': "06_06_06v1/likelihood_protoDUNE_mup_v1.root",
+      'fn': "06_18_01v2/iso_mup_v2.root",
       'pdg': -13,
       'name': "mup",
       'title': "#mu^{+}",
@@ -230,7 +248,7 @@ if __name__ == "__main__":
       'nPlanes': 2,
     },
     {
-      'fn': "06_06_06v1/likelihood_protoDUNE_kp_v1.root",
+      'fn': "06_18_01v2/iso_kp_v2.root",
       'pdg': 321,
       'name': "kp",
       'title': "K^{+}",
@@ -253,13 +271,17 @@ if __name__ == "__main__":
   
   outfile = root.TFile("LHPID_Templates.root","recreate")
   likelihoodsPerPlane = []
-  for iPlane in range(3):
+  #for iPlane in range(3):
+  if True:
+    iPlane = 2
     likelihoods = {}
     for fileConfig in fileConfigs:
       #hists[fileConfig['name']], likelihoods[fileConfig['name']] = makeLikelihood(fileConfig,binningArg,evalFrac)
       hist, likelihoods[fileConfig['name']] = makeLikelihood(fileConfig,iPlane,binningArg,evalFrac)
       outfile.cd()
       hist.Write()
+    likelihoodsPerPlane.append(likelihoods)
+    likelihoodsPerPlane.append(likelihoods)
     likelihoodsPerPlane.append(likelihoods)
     ## Now Save Histogram File
     ## Now Evaluate
@@ -272,7 +294,7 @@ if __name__ == "__main__":
       labels = []
       labelsRatio = []
       for fileConfig2 in fileConfigs:
-        hist = Hist(100,0.,1500)
+        hist = Hist(100,0.,3000)
         hist.UseCurrentStyle()
         color = fileConfig2['color']
         hist.SetLineColor(color)
@@ -377,25 +399,25 @@ if __name__ == "__main__":
   # Eff v Eff Curves
   pipFileConfig = [x for x in fileConfigs if x['name']=='pip'][0]
   pFileConfig = [x for x in fileConfigs if x['name']=='p'][0]
-  effVeffPlane0 = makeLLHREffVEffGraph(likelihoodsPerPlane[0]['pip'],likelihoodsPerPlane[0]['p'],pipFileConfig['tree'],pFileConfig['tree'],pipFileConfig['nSkip'],pFileConfig['nSkip'],0)
-  effVeffPlane1 = makeLLHREffVEffGraph(likelihoodsPerPlane[1]['pip'],likelihoodsPerPlane[1]['p'],pipFileConfig['tree'],pFileConfig['tree'],pipFileConfig['nSkip'],pFileConfig['nSkip'],1)
+  #effVeffPlane0 = makeLLHREffVEffGraph(likelihoodsPerPlane[0]['pip'],likelihoodsPerPlane[0]['p'],pipFileConfig['tree'],pFileConfig['tree'],pipFileConfig['nSkip'],pFileConfig['nSkip'],0)
+  #effVeffPlane1 = makeLLHREffVEffGraph(likelihoodsPerPlane[1]['pip'],likelihoodsPerPlane[1]['p'],pipFileConfig['tree'],pFileConfig['tree'],pipFileConfig['nSkip'],pFileConfig['nSkip'],1)
   effVeffPlane2 = makeLLHREffVEffGraph(likelihoodsPerPlane[2]['pip'],likelihoodsPerPlane[2]['p'],pipFileConfig['tree'],pFileConfig['tree'],pipFileConfig['nSkip'],pFileConfig['nSkip'],2)
   axisHist = Hist2D(1,0,1.0,1,0,1.0)
   setHistTitles(axisHist,"#pi^{+} Efficiency","Proton Efficiency")
   axisHist.Draw()
-  effVeffPlane0.SetLineColor(root.kRed+1)
-  effVeffPlane0.SetMarkerColor(root.kRed+1)
-  effVeffPlane1.SetLineColor(root.kBlue)
-  effVeffPlane1.SetMarkerColor(root.kBlue)
+  #effVeffPlane0.SetLineColor(root.kRed+1)
+  #effVeffPlane0.SetMarkerColor(root.kRed+1)
+  #effVeffPlane1.SetLineColor(root.kBlue)
+  #effVeffPlane1.SetMarkerColor(root.kBlue)
   effVeffPlane2.SetLineColor(root.kGreen+1)
   effVeffPlane2.SetMarkerColor(root.kGreen+1)
-  effVeffPlane0.SetLineWidth(3)
-  effVeffPlane1.SetLineWidth(3)
+  #effVeffPlane0.SetLineWidth(3)
+  #effVeffPlane1.SetLineWidth(3)
   effVeffPlane2.SetLineWidth(3)
   effVeffPlane2.Draw("L")
-  effVeffPlane1.Draw("L")
-  effVeffPlane0.Draw("L")
-  leg = drawNormalLegend([effVeffPlane0,effVeffPlane1,effVeffPlane2],["Plane 0", "Plane 1","Plane 2"])
+  #effVeffPlane1.Draw("L")
+  #effVeffPlane0.Draw("L")
+  #leg = drawNormalLegend([effVeffPlane0,effVeffPlane1,effVeffPlane2],["Plane 0", "Plane 1","Plane 2"])
   drawStandardCaptions(c,"#pi^{+}/p likelihood ratio")
   saveName = "effVeff_pip_p"
   c.SaveAs(saveName+".png")
