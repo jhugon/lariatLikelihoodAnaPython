@@ -98,7 +98,7 @@ def makeLikelihood(fileConfig,iPlane,binningArg=[325,0.,26.,200,0.,100.],evalFra
     likelihood.Scale(1./likelihoodIntegral)
 
   setHistTitles(likelihood,"Residual Range [cm]","dE/dx [MeV/cm]")
-  setHistRange(likelihood,0,20,0,30)
+  #setHistRange(likelihood,0,20,0,30)
   likelihood.Draw("colz")
   drawStandardCaptions(c,"Likelihood for {}, plane {}".format(fileConfig["title"],iPlane),captionright2="Events: {0:.0f}".format(nEntries-nSkip),captionright3="Entries: {0:.0f}".format(likelihood.GetEntries()),captionright1=binCaption,colorInside=root.kWhite)
   plotfn = "LH_{}_plane{}.png".format(fileConfig['name'],iPlane)
@@ -112,11 +112,28 @@ def evalLogLikelihood(likelihoodHist,tree,iPlane):
   You must have called tree.GetEntry(i) for the entry you want
   """
   result = 0.
+  atLeastOneGoodHit = False
+  rrNbins = likelihoodHist.GetXaxis().GetNbins()
+  rrMin = likelihoodHist.GetXaxis().GetBinLowEdge(1)
+  rrMax = likelihoodHist.GetXaxis().GetBinUpEdge(rrNbins)
+  dEdxNbins = likelihoodHist.GetYaxis().GetNbins()
+  dEdxMin = likelihoodHist.GetYaxis().GetBinLowEdge(1)
+  dEdxMax = likelihoodHist.GetYaxis().GetBinUpEdge(dEdxNbins)
   for rr, dEdx, plane in zip(tree.resRange,tree.dEdx,tree.plane):
     if iPlane == plane:
-      iBin = likelihoodHist.FindBin(rr,dEdx)
-      lh = likelihoodHist.GetBinContent(iBin)
-      result += log(lh)
+      if rr > rrMin and rr < rrMax and dEdx > dEdxMin and dEdx < dEdxMax:
+        iBin = likelihoodHist.FindBin(rr,dEdx)
+        lh = likelihoodHist.GetBinContent(iBin)
+        if lh > 1.:
+          print("Warning: likelihood greater than 1: {}, for rr and dEdx: {} {}".format(lh,rr,dEdx))
+        result += log(lh)
+        atLeastOneGoodHit = True
+  if not atLeastOneGoodHit:
+    result = -1e15
+  if result > 0.:
+    print(result)
+    print(tree.resRange)
+    print(tree.dEdx)
   return result
 
 def makeLLHREffVEffGraph(likelihoodHistNum,likelihoodHistDenom,treeX,treeY,nMaxX,nMaxY,iPlane):
@@ -233,7 +250,7 @@ def findEffs(likelihoodHistNum,likelihoodHistDenom,tree,nMax,iPlane):
 
 if __name__ == "__main__":
 
-  binningArg = [520,0.,26.,400,0.,100.]
+  binningArg = [520,1.,26.,400,0.,100.]
   evalFrac = 0.1
   fileConfigs = [
     {
