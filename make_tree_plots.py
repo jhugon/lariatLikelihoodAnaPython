@@ -10,9 +10,51 @@ root.gROOT.SetBatch(True)
 *Br    2 :dEdx_raw  : vector<float>                                          *
 *Br    3 :dEdx_pitchCorr : vector<float>                                     *
 *Br    4 :plane     : vector<unsigned int>                                   *
-*Br    5 :KE        : KE/F                                                   *
-*Br    6 :nCaloHits : nCaloHits/i                                            *
-*Br    7 :pdg       : pdg/I                                                  *
+*Br    5 :interpE   : vector<float>                                          *
+*Br    6 :interpP   : vector<float>                                          *
+*Br    7 :interpDistance : vector<float>                                     *
+*Br    8 :interpDistanceToClosestTrajPoint : vector<float>                   *
+*Br    9 :interpIClosestTrajPoint : vector<unsigned int>                     *
+*Br   10 :KE        : KE/F                                                   *
+*Br   11 :nCaloHits : nCaloHits/i                                            *
+*Br   12 :pdg       : pdg/I                                                  *
+*Br   13 :startPosX : startPosX/F                                            *
+*Br   14 :startPosY : startPosY/F                                            *
+*Br   15 :startPosZ : startPosZ/F                                            *
+*Br   16 :endPosX   : endPosX/F                                              *
+*Br   17 :endPosY   : endPosY/F                                              *
+*Br   18 :endPosZ   : endPosZ/F                                              *
+*Br   19 :trkCurvyness : trkCurvyness/F                                      *
+*Br   20 :matchStartDistance : matchStartDistance/F                          *
+*Br   21 :matchStartAngle : matchStartAngle/F                                *
+*Br   22 :matchEndDistance : matchEndDistance/F                              *
+*Br   23 :matchEndAngle : matchEndAngle/F                                    *
+*Br   24 :producesNTracks : producesNTracks/I                                *
+*Br   25 :true_resRange : vector<float>                                      *
+*Br   26 :true_dEdx : vector<float>                                          *
+*Br   27 :true_trajE : vector<float>                                         *
+*Br   28 :true_trajp : vector<float>                                         *
+*Br   29 :true_inTPC : vector<bool>                                          *
+*Br   30 :true_trajProcIs : vector<unsigned int>                             *
+*Br   31 :true_trajProcNames : vector<string>                                *
+*Br   32 :nTruePoints : nTruePoints/i                                        *
+*Br   33 :true_ELostInTPC : true_ELostInTPC/F                                *
+*Br   34 :true_E    : true_E/F                                               *
+*Br   35 :true_p    : true_p/F                                               *
+*Br   36 :true_thetaZenith : true_thetaZenith/F                              *
+*Br   37 :true_thetaYZ : true_thetaYZ/F                                      *
+*Br   38 :true_thetaYX : true_thetaYX/F                                      *
+*Br   39 :true_startPosX : true_startPosX/F                                  *
+*Br   40 :true_startPosY : true_startPosY/F                                  *
+*Br   41 :true_startPosZ : true_startPosZ/F                                  *
+*Br   42 :true_endPosX : true_endPosX/F                                      *
+*Br   43 :true_endPosY : true_endPosY/F                                      *
+*Br   44 :true_endPosZ : true_endPosZ/F                                      *
+*Br   45 :true_length : true_length/F                                        *
+*Br   46 :true_process : string                                              *
+*Br   47 :true_endProcess : string                                           *
+*Br   48 :true_startContained : true_startContained/O                        *
+*Br   49 :true_endContained : true_endContained/O                            *
 """
 
 MULTIPLYBYPITCH=False
@@ -29,7 +71,7 @@ def makeLikelihood(fileConfig,iPlane,binningArg=[325,0.,26.,200,0.,100.],evalFra
   nSkip = int(evalFrac*nEntries)
   fileConfig['nSkip'] = nSkip
   nPlanes = fileConfig['nPlanes']
-  cuts = "pdg == {0:d} && plane == {1:d} && resRange > 1.".format(fileConfig['pdg'],iPlane)
+  cuts = "pdg == {0:d} && plane == {1:d}".format(fileConfig['pdg'],iPlane)
 #  if fileConfig['name'] == 'p':
 #    cuts += "&& true_p < 0.75"
 #    cuts += "&& true_p > 0.75"
@@ -67,6 +109,27 @@ def makeLikelihood(fileConfig,iPlane,binningArg=[325,0.,26.,200,0.,100.],evalFra
   drawStandardCaptions(c,"Likelihood for {}, plane {}".format(fileConfig["title"],iPlane),captionright2="Events: {0:.0f}".format(nEntries-nSkip),captionright3="Entries: {0:.0f}".format(likelihood.GetEntries()),captionright1=binCaption,colorInside=root.kWhite)
   plotfn = "LH_{}_plane{}.png".format(fileConfig['name'],iPlane)
   c.SaveAs(plotfn)
+
+  ## Do dE/dx v trk len
+  trkLenStr = "sqrt(pow(endPosX-startPosX,2)+pow(endPosY-startPosY,2)+pow(endPosZ-startPosZ,2))"
+  histdEdxVLen = Hist2D(200,0,1000,120,0,30,TH2D=True)
+  histdEdxVLen.SetName("dEdxVLen_pdg{0:d}_plane{1:d}".format(fileConfig['pdg'],iPlane))
+  histdEdxVLenname = histdEdxVLen.GetName()
+  c.SetLogz(True)
+  cuts += " && resRange > 1 && resRange < 10"
+  if MULTIPLYBYPITCH:
+    tree.Draw("dEdx_pitchCorr:{1} >> {0}".format(histdEdxVLenname,trkLenStr),cuts,"",nEntries,nSkip)
+  else:
+    tree.Draw("dEdx_raw:{1} >> {0}".format(histdEdxVLenname,trkLenStr),cuts,"",nEntries,nSkip)
+
+  setHistTitles(histdEdxVLen,"Reco Track Length [cm]","dE/dx [MeV/cm]")
+  histdEdxVLen.Draw("colz")
+  drawStandardCaptions(c,"{}, plane {}".format(fileConfig["caption"],iPlane),captionright3="Events: {0:.0f}".format(nEntries-nSkip),captionright2=binCaption,captionright1="1 cm < Resid. Range < 10 cm")
+  plotfn = "dEdxVlen_{}_plane{}.png".format(fileConfig['name'],iPlane)
+  c.SaveAs(plotfn)
+  c.SetLogz(False)
+  
+
   setupCOLZFrame(c,True)
   return hist, likelihood
 
@@ -78,10 +141,10 @@ def evalLogLikelihood(likelihoodHist,tree,iPlane):
   result = 0.
   atLeastOneGoodHit = False
   rrNbins = likelihoodHist.GetXaxis().GetNbins()
-  rrMin = likelihoodHist.GetXaxis().GetBinLowEdge(0)
+  rrMin = likelihoodHist.GetXaxis().GetBinLowEdge(1)
   rrMax = likelihoodHist.GetXaxis().GetBinUpEdge(rrNbins)
   dEdxNbins = likelihoodHist.GetYaxis().GetNbins()
-  dEdxMin = likelihoodHist.GetYaxis().GetBinLowEdge(0)
+  dEdxMin = likelihoodHist.GetYaxis().GetBinLowEdge(1)
   dEdxMax = likelihoodHist.GetYaxis().GetBinUpEdge(dEdxNbins)
   dEdxVec = tree.dEdx_raw
   if MULTIPLYBYPITCH:
@@ -217,7 +280,7 @@ def findEffs(likelihoodHistNum,likelihoodHistDenom,tree,nMax,iPlane):
 
 if __name__ == "__main__":
 
-  binningArg = [10*50,1.,50.,400,0.,100.]
+  binningArg = [10*300,1.,300.,400,0.,100.]
   evalFrac = 0.1
   fileConfigs = [
     {
@@ -287,7 +350,7 @@ if __name__ == "__main__":
     ## Now Evaluate
     #pipLHDiffs = [Hist(200,-1000,1000) for f in fileConfigs]
     #pipLHDiffs = [Hist(100,-750,750) for f in fileConfigs]
-    pipLHDiffs = [Hist(100,-50,50) for f in fileConfigs]
+    pipLHDiffs = [Hist(100,-500,500) for f in fileConfigs]
     for fileConfig,pipLHDiff in zip(fileConfigs,pipLHDiffs):
       tree = fileConfig['tree']
       hists = []
