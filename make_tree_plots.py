@@ -220,24 +220,24 @@ if __name__ == "__main__":
       'color': root.kBlue,
       'nPlanes': 2,
     },
-#    {
-#      'fn': "06_15_00_v2/Likelihood_mup_v2.root",
-#      'pdg': -13,
-#      'name': "mup",
-#      'title': "#mu^{+}",
-#      'caption': "#mu^{+} MC sample",
-#      'color': root.kBlack,
-#      'nPlanes': 2,
-#    },
-#    {
-#      'fn': "06_15_00_v2/Likelihood_kp_v2.root",
-#      'pdg': 321,
-#      'name': "kp",
-#      'title': "K^{+}",
-#      'caption': "K^{+} MC sample",
-#      'color': root.kGreen+1,
-#      'nPlanes': 2,
-#    },
+    {
+      'fn': "06_15_00_v2/Likelihood_mup_v2.root",
+      'pdg': -13,
+      'name': "mup",
+      'title': "#mu^{+}",
+      'caption': "#mu^{+} MC sample",
+      'color': root.kBlack,
+      'nPlanes': 2,
+    },
+    {
+      'fn': "06_15_00_v2/Likelihood_kp_v2.root",
+      'pdg': 321,
+      'name': "kp",
+      'title': "K^{+}",
+      'caption': "K^{+} MC sample",
+      'color': root.kGreen+1,
+      'nPlanes': 2,
+    },
   ]
   
   ## Compute bin width from binning arg
