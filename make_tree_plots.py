@@ -6,16 +6,56 @@ root.gROOT.SetBatch(True)
 
 """
 *Br    0 :resRange  : vector<float>                                          *
-*Br    1 :pitchCorr : vector<float>                                          *
-*Br    2 :dEdx_raw  : vector<float>                                          *
-*Br    3 :dEdx_pitchCorr : vector<float>                                     *
-*Br    4 :plane     : vector<unsigned int>                                   *
-*Br    5 :KE        : KE/F                                                   *
-*Br    6 :nCaloHits : nCaloHits/i                                            *
-*Br    7 :pdg       : pdg/I                                                  *
+*Br    1 :pitch     : vector<float>                                          *
+*Br    2 :dEdx      : vector<float>                                          *
+*Br    3 :plane     : vector<unsigned int>                                   *
+*Br    4 :interpE   : vector<float>                                          *
+*Br    5 :interpP   : vector<float>                                          *
+*Br    6 :interpDistance : vector<float>                                     *
+*Br    7 :interpDistanceToClosestTrajPoint : vector<float>                   *
+*Br    8 :interpIClosestTrajPoint : vector<unsigned int>                     *
+*Br    9 :KE        : KE/F                                                   *
+*Br   10 :nCaloHits : nCaloHits/i                                            *
+*Br   11 :pdg       : pdg/I                                                  *
+*Br   12 :startPosX : startPosX/F                                            *
+*Br   13 :startPosY : startPosY/F                                            *
+*Br   14 :startPosZ : startPosZ/F                                            *
+*Br   15 :endPosX   : endPosX/F                                              *
+*Br   16 :endPosY   : endPosY/F                                              *
+*Br   17 :endPosZ   : endPosZ/F                                              *
+*Br   18 :trkLen    : trkLen/F                                               *
+*Br   19 :trkCurvyness : trkCurvyness/F                                      *
+*Br   20 :matchStartDistance : matchStartDistance/F                          *
+*Br   21 :matchStartAngle : matchStartAngle/F                                *
+*Br   22 :matchEndDistance : matchEndDistance/F                              *
+*Br   23 :matchEndAngle : matchEndAngle/F                                    *
+*Br   24 :producesNTracks : producesNTracks/I                                *
+*Br   25 :true_resRange : vector<float>                                      *
+*Br   26 :true_dEdx : vector<float>                                          *
+*Br   27 :true_trajE : vector<float>                                         *
+*Br   28 :true_trajp : vector<float>                                         *
+*Br   29 :true_inTPC : vector<bool>                                          *
+*Br   30 :true_trajProcIs : vector<unsigned int>                             *
+*Br   31 :true_trajProcNames : vector<string>                                *
+*Br   32 :nTruePoints : nTruePoints/i                                        *
+*Br   33 :true_ELostInTPC : true_ELostInTPC/F                                *
+*Br   34 :true_E    : true_E/F                                               *
+*Br   35 :true_p    : true_p/F                                               *
+*Br   36 :true_thetaZenith : true_thetaZenith/F                              *
+*Br   37 :true_thetaYZ : true_thetaYZ/F                                      *
+*Br   38 :true_thetaYX : true_thetaYX/F                                      *
+*Br   39 :true_startPosX : true_startPosX/F                                  *
+*Br   40 :true_startPosY : true_startPosY/F                                  *
+*Br   41 :true_startPosZ : true_startPosZ/F                                  *
+*Br   42 :true_endPosX : true_endPosX/F                                      *
+*Br   43 :true_endPosY : true_endPosY/F                                      *
+*Br   44 :true_endPosZ : true_endPosZ/F                                      *
+*Br   45 :true_length : true_length/F                                        *
+*Br   46 :true_process : string                                              *
+*Br   47 :true_endProcess : string                                           *
+*Br   48 :true_startContained : true_startContained/O                        *
+*Br   49 :true_endContained : true_endContained/O                            *
 """
-
-MULTIPLYBYPITCH=False
 
 def makeLikelihood(fileConfig,iPlane,binningArg=[325,0.,26.,200,0.,100.],evalFrac=0.1):
   ## Compute bin width from binning arg
@@ -37,10 +77,7 @@ def makeLikelihood(fileConfig,iPlane,binningArg=[325,0.,26.,200,0.,100.],evalFra
   hist = Hist2D(*binningArg,TH2D=True)
   hist.SetName("pdg{0:d}_plane{1:d}".format(fileConfig['pdg'],iPlane))
   histname = hist.GetName()
-  if MULTIPLYBYPITCH:
-    tree.Draw("dEdx_pitchCorr:resRange >> {0}".format(histname),cuts,"",nEntries,nSkip)
-  else:
-    tree.Draw("dEdx_raw:resRange >> {0}".format(histname),cuts,"",nEntries,nSkip)
+  tree.Draw("dEdx:resRange >> {0}".format(histname),cuts,"",nEntries,nSkip)
 
   setHistTitles(hist,"Residual Range [cm]","dE/dx [MeV/cm]")
   hist.Draw("colz")
@@ -75,10 +112,7 @@ def evalLogLikelihood(likelihoodHist,tree,iPlane):
   You must have called tree.GetEntry(i) for the entry you want
   """
   result = 0.
-  dEdxVec = tree.dEdx_raw
-  if MULTIPLYBYPITCH:
-    dEdxVec = tree.dEdx_pitchCorr
-  for rr, dEdx, plane in zip(tree.resRange,dEdxVec,tree.plane):
+  for rr, dEdx, plane in zip(tree.resRange,tree.dEdx,tree.plane):
     if iPlane == plane:
       iBin = likelihoodHist.FindBin(rr,dEdx)
       lh = likelihoodHist.GetBinContent(iBin)
@@ -203,7 +237,7 @@ if __name__ == "__main__":
   evalFrac = 0.1
   fileConfigs = [
     {
-      'fn': "06_15_00_v2/Likelihood_p_v2.root",
+      'fn': "06_15_00_v2_testing/isoInTPC_p_v2_likelihood.root",
       'pdg': 2212,
       'name': "p",
       'title': "p",
@@ -212,7 +246,7 @@ if __name__ == "__main__":
       'nPlanes': 2,
     },
     {
-      'fn': "06_15_00_v2/Likelihood_pip_v2.root",
+      'fn': "06_15_00_v2_testing/isoInTPC_pip_v2_likelihood.root",
       'pdg': 211,
       'name': "pip",
       'title': "#pi^{+}",
@@ -220,24 +254,24 @@ if __name__ == "__main__":
       'color': root.kBlue,
       'nPlanes': 2,
     },
-    {
-      'fn': "06_15_00_v2/Likelihood_mup_v2.root",
-      'pdg': -13,
-      'name': "mup",
-      'title': "#mu^{+}",
-      'caption': "#mu^{+} MC sample",
-      'color': root.kBlack,
-      'nPlanes': 2,
-    },
-    {
-      'fn': "06_15_00_v2/Likelihood_kp_v2.root",
-      'pdg': 321,
-      'name': "kp",
-      'title': "K^{+}",
-      'caption': "K^{+} MC sample",
-      'color': root.kGreen+1,
-      'nPlanes': 2,
-    },
+    #{
+    #  'fn': "06_15_00_v2/Likelihood_mup_v2.root",
+    #  'pdg': -13,
+    #  'name': "mup",
+    #  'title': "#mu^{+}",
+    #  'caption': "#mu^{+} MC sample",
+    #  'color': root.kBlack,
+    #  'nPlanes': 2,
+    #},
+    #{
+    #  'fn': "06_15_00_v2/Likelihood_kp_v2.root",
+    #  'pdg': 321,
+    #  'name': "kp",
+    #  'title': "K^{+}",
+    #  'caption': "K^{+} MC sample",
+    #  'color': root.kGreen+1,
+    #  'nPlanes': 2,
+    #},
   ]
   
   ## Compute bin width from binning arg
