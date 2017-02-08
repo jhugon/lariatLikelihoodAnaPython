@@ -61,7 +61,7 @@ def makeLikelihood(fileConfig,iPlane,binningArg=[325,0.,26.,200,0.,100.],evalFra
   ## Compute bin width from binning arg
   binWidthX = (float(binningArg[2])-binningArg[1])/binningArg[0]
   binWidthY = (float(binningArg[5])-binningArg[4])/binningArg[3]
-  binCaption = "Bin size: {0:.2f} cm #times {1:.2f} MeV/cm".format(binWidthX,binWidthY)
+  binCaption = "Bin size: {0:.2f} mm #times {1:.2f} MeV/cm".format(binWidthX*10,binWidthY)
 
   setupCOLZFrame(c)
   tree = fileConfig['tree']
@@ -92,7 +92,7 @@ def makeLikelihood(fileConfig,iPlane,binningArg=[325,0.,26.,200,0.,100.],evalFra
       iBin = likelihood.GetBin(iBinX,iBinY)
       content = likelihood.GetBinContent(iBin)
       if content == 0:
-        likelihood.SetBinContent(iBin,1e-6)
+        likelihood.SetBinContent(iBin,1e-1)
   likelihoodIntegral = likelihood.Integral()
   if likelihoodIntegral != 0.:
     likelihood.Scale(1./likelihoodIntegral)
@@ -250,7 +250,7 @@ def findEffs(likelihoodHistNum,likelihoodHistDenom,tree,nMax,iPlane):
 
 if __name__ == "__main__":
 
-  binningArg = [580,1.,30.,200,0.,50.]
+  binningArg = [1980,1.,100.,200,0.,50.]
   evalFrac = 0.1
   fileConfigs = [
     {
@@ -323,7 +323,7 @@ if __name__ == "__main__":
       labels = []
       labelsRatio = []
       for fileConfig2 in fileConfigs:
-        hist = Hist(75,0.,1500)
+        hist = Hist(100,0.,3000)
         hist.UseCurrentStyle()
         color = fileConfig2['color']
         hist.SetLineColor(color)
