@@ -92,7 +92,7 @@ def makeLikelihood(fileConfig,iPlane,binningArg=[325,0.,26.,200,0.,100.],evalFra
       iBin = likelihood.GetBin(iBinX,iBinY)
       content = likelihood.GetBinContent(iBin)
       if content == 0:
-        likelihood.SetBinContent(iBin,0.001)
+        likelihood.SetBinContent(iBin,1e-6)
   likelihoodIntegral = likelihood.Integral()
   if likelihoodIntegral != 0.:
     likelihood.Scale(1./likelihoodIntegral)
@@ -250,11 +250,11 @@ def findEffs(likelihoodHistNum,likelihoodHistDenom,tree,nMax,iPlane):
 
 if __name__ == "__main__":
 
-  binningArg = [520,1.,26.,400,0.,100.]
+  binningArg = [580,1.,30.,200,0.,50.]
   evalFrac = 0.1
   fileConfigs = [
     {
-      'fn': "06_15_00_v2_testing/isoInTPC_p_v2_likelihood.root",
+      'fn': "06_15_00_v2_v2/Likelihood_p_v2.root",
       'pdg': 2212,
       'name': "p",
       'title': "p",
@@ -263,7 +263,7 @@ if __name__ == "__main__":
       'nPlanes': 2,
     },
     {
-      'fn': "06_15_00_v2_testing/isoInTPC_pip_v2_likelihood.root",
+      'fn': "06_15_00_v2_v2/Likelihood_pip_v2.root",
       'pdg': 211,
       'name': "pip",
       'title': "#pi^{+}",
@@ -271,24 +271,24 @@ if __name__ == "__main__":
       'color': root.kBlue,
       'nPlanes': 2,
     },
-    #{
-    #  'fn': "06_15_00_v2/Likelihood_mup_v2.root",
-    #  'pdg': -13,
-    #  'name': "mup",
-    #  'title': "#mu^{+}",
-    #  'caption': "#mu^{+} MC sample",
-    #  'color': root.kBlack,
-    #  'nPlanes': 2,
-    #},
-    #{
-    #  'fn': "06_15_00_v2/Likelihood_kp_v2.root",
-    #  'pdg': 321,
-    #  'name': "kp",
-    #  'title': "K^{+}",
-    #  'caption': "K^{+} MC sample",
-    #  'color': root.kGreen+1,
-    #  'nPlanes': 2,
-    #},
+    {
+      'fn': "06_15_00_v2_v2/Likelihood_mup_v2.root",
+      'pdg': -13,
+      'name': "mup",
+      'title': "#mu^{+}",
+      'caption': "#mu^{+} MC sample",
+      'color': root.kBlack,
+      'nPlanes': 2,
+    },
+    {
+      'fn': "06_15_00_v2_v2/Likelihood_kp_v2.root",
+      'pdg': 321,
+      'name': "kp",
+      'title': "K^{+}",
+      'caption': "K^{+} MC sample",
+      'color': root.kGreen+1,
+      'nPlanes': 2,
+    },
   ]
   
   ## Compute bin width from binning arg
@@ -316,14 +316,14 @@ if __name__ == "__main__":
     ## Now Evaluate
     #pipLHDiffs = [Hist(200,-1000,1000) for f in fileConfigs]
     #pipLHDiffs = [Hist(100,-750,750) for f in fileConfigs]
-    pipLHDiffs = [Hist(100,-50,50) for f in fileConfigs]
+    pipLHDiffs = [Hist(50,-300,300) for f in fileConfigs]
     for fileConfig,pipLHDiff in zip(fileConfigs,pipLHDiffs):
       tree = fileConfig['tree']
       hists = []
       labels = []
       labelsRatio = []
       for fileConfig2 in fileConfigs:
-        hist = Hist(100,0.,1500)
+        hist = Hist(75,0.,1500)
         hist.UseCurrentStyle()
         color = fileConfig2['color']
         hist.SetLineColor(color)
