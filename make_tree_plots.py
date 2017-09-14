@@ -55,6 +55,32 @@ root.gROOT.SetBatch(True)
 *Br   47 :true_endProcess : string                                           *
 *Br   48 :true_startContained : true_startContained/O                        *
 *Br   49 :true_endContained : true_endContained/O                            *
+
+*Br   25 :pidPlane  : vector<unsigned int>                                   *
+*Entries :     1915 : Total  Size=      42786 bytes  File Size  =       3428 *
+*Baskets :        2 : Basket Size=      32000 bytes  Compression=  12.34     *
+*............................................................................*
+*Br   26 :pidChi2_p : vector<float>                                          *
+*Entries :     1915 : Total  Size=      42792 bytes  File Size  =      19591 *
+*Baskets :        2 : Basket Size=      32000 bytes  Compression=   2.16     *
+*............................................................................*
+*Br   27 :pidChi2_pi : vector<float>                                         *
+*Entries :     1915 : Total  Size=      42798 bytes  File Size  =      19843 *
+*Baskets :        2 : Basket Size=      32000 bytes  Compression=   2.13     *
+*............................................................................*
+*Br   28 :pidChi2_mu : vector<float>                                         *
+*Entries :     1915 : Total  Size=      42798 bytes  File Size  =      20156 *
+*Baskets :        2 : Basket Size=      32000 bytes  Compression=   2.10     *
+*............................................................................*
+*Br   29 :pidChi2_k : vector<float>                                          *
+*Entries :     1915 : Total  Size=      42792 bytes  File Size  =      19617 *
+*Baskets :        2 : Basket Size=      32000 bytes  Compression=   2.16     *
+*............................................................................*
+*Br   30 :PIDA      : vector<float>                                          *
+*Entries :     1915 : Total  Size=      42762 bytes  File Size  =      20151 *
+*Baskets :        2 : Basket Size=      32000 bytes  Compression=   2.10     *
+*............................................................................*
+
 """
 
 #def makeLikelihood(fileConfig,iPlane,binningArg=[325,0.,26.,200,0.,100.],evalFrac=0.1):
@@ -138,35 +164,20 @@ def evalLogLikelihood(likelihoodHist,tree,iPlane):
   return result
 
 def makeLLHREffVEffGraph(likelihoodHistNum,likelihoodHistDenom,treeX,treeY,nMaxX,nMaxY,iPlane):
-  valuesX = []
-  for iEntry in range(nMaxX):
-    treeX.GetEntry(iEntry)
-    llhNum = evalLogLikelihood(likelihoodHistNum,treeX,iPlane)
-    llhDenom = evalLogLikelihood(likelihoodHistDenom,treeX,iPlane)
-    llhr = llhNum-llhDenom
-    valuesX.append(llhr)
-  valuesX.sort()
-  valuesX.reverse()
-  valuesY = []
-  for iEntry in range(nMaxY):
-    treeY.GetEntry(iEntry)
-    llhNum = evalLogLikelihood(likelihoodHistNum,treeY,iPlane)
-    llhDenom = evalLogLikelihood(likelihoodHistDenom,treeY,iPlane)
-    llhr = llhNum-llhDenom
-    valuesY.append(llhr)
-  valuesY.sort()
-  valuesY.reverse()
-  #print min(valuesX), max(valuesX)
-  #print min(valuesY), max(valuesY)
   efficiency = root.TGraph()
-  effsX, valuesX = findEffs(likelihoodHistNum,likelihoodHistDenom,treeX,nMaxX,iPlane)
-  effsY, valuesY = findEffs(likelihoodHistNum,likelihoodHistDenom,treeY,nMaxY,iPlane)
+  efficiencyPIDA = root.TGraph()
+  effsX, valuesX, effsXPIDA, valuesXPIDA = findEffs(likelihoodHistNum,likelihoodHistDenom,treeX,nMaxX,iPlane)
+  effsY, valuesY, effsYPIDA, valuesYPIDA = findEffs(likelihoodHistNum,likelihoodHistDenom,treeY,nMaxY,iPlane)
   nX = len(effsX)
   nY = len(effsY)
+  # Eff v Eff plot
   efficiency.SetPoint(0,0,0)
+  efficiencyPIDA.SetPoint(0,0,0)
   for iX in range(nX):
     effX = effsX[iX]
+    effXPIDA = effsXPIDA[iX]
     x = valuesX[iX]
+    xPIDA = valuesXPIDA[iX]
     #print x
     effY = 0.
     for iY in range(nY):
@@ -176,7 +187,18 @@ def makeLLHREffVEffGraph(likelihoodHistNum,likelihoodHistDenom,treeX,treeY,nMaxX
         effY = effsY[iY]
         break
     efficiency.SetPoint(iX+1,effX,effY)
+    effYPIDA = 0.
+    #print "xPIDA: {:10.3f}".format(xPIDA)
+    for iY in reversed(range(nY)):
+      y = valuesYPIDA[iY]
+      #print "  try yPIDA: {:10.3f}".format(y)
+      if y <= xPIDA:
+        effYPIDA = effsYPIDA[iY]
+        break
+    efficiencyPIDA.SetPoint(iX+1,effXPIDA,effYPIDA)
   efficiency.SetPoint(nX+1,1,1)
+  efficiencyPIDA.SetPoint(nX+1,1,1)
+  # Now print efficiency
   print("For plane: {}".format(iPlane))
   printed65 = False
   printed80 = False
@@ -187,10 +209,10 @@ def makeLLHREffVEffGraph(likelihoodHistNum,likelihoodHistDenom,treeX,treeY,nMaxX
     if not printed65 and eff >= 0.65:
         effYCut = None
         for effY, valY in zip(effsY,valuesY):
-            if valY >= val:
+            if valY <= val:
                 effYCut = effY
                 break
-        print("cut value: {}, X eff: {}, Y eff: {}".format(val,eff,effYCut))
+        print("LH   cut value: {}, X eff: {}, Y eff: {}".format(val,eff,effYCut))
         printed65 = True
     if not printed80 and eff >= 0.8:
         effYCut = None
@@ -198,7 +220,7 @@ def makeLLHREffVEffGraph(likelihoodHistNum,likelihoodHistDenom,treeX,treeY,nMaxX
             if valY <= val:
                 effYCut = effY
                 break
-        print("cut value: {}, X eff: {}, Y eff: {}".format(val,eff,effYCut))
+        print("LH   cut value: {}, X eff: {}, Y eff: {}".format(val,eff,effYCut))
         printed80 = True
     if not printed90 and eff >= 0.9:
         effYCut = None
@@ -206,7 +228,7 @@ def makeLLHREffVEffGraph(likelihoodHistNum,likelihoodHistDenom,treeX,treeY,nMaxX
             if valY <= val:
                 effYCut = effY
                 break
-        print("cut value: {}, X eff: {}, Y eff: {}".format(val,eff,effYCut))
+        print("LH   cut value: {}, X eff: {}, Y eff: {}".format(val,eff,effYCut))
         printed90 = True
     if not printed95 and eff >= 0.95:
         effYCut = None
@@ -214,7 +236,7 @@ def makeLLHREffVEffGraph(likelihoodHistNum,likelihoodHistDenom,treeX,treeY,nMaxX
             if valY <= val:
                 effYCut = effY
                 break
-        print("cut value: {}, X eff: {}, Y eff: {}".format(val,eff,effYCut))
+        print("LH   cut value: {}, X eff: {}, Y eff: {}".format(val,eff,effYCut))
         printed95 = True
     if not printed99 and eff >= 0.99:
         effYCut = None
@@ -222,10 +244,58 @@ def makeLLHREffVEffGraph(likelihoodHistNum,likelihoodHistDenom,treeX,treeY,nMaxX
             if valY <= val:
                 effYCut = effY
                 break
-        print("cut value: {}, X eff: {}, Y eff: {}".format(val,eff,effYCut))
+        print("LH   cut value: {}, X eff: {}, Y eff: {}".format(val,eff,effYCut))
         printed99 = True
         break
-  return efficiency
+  # Now print efficiency for PIDA
+  printed65 = False
+  printed80 = False
+  printed90 = False
+  printed95 = False
+  printed99 = False
+  for eff, val in zip(effsXPIDA,valuesXPIDA):
+    if not printed65 and eff >= 0.65:
+        effYCut = None
+        for effY, valY in reversed(zip(effsYPIDA,valuesYPIDA)):
+            if valY <= val:
+                effYCut = effY
+                break
+        print("PIDA cut value: {}, X eff: {}, Y eff: {}".format(val,eff,effYCut))
+        printed65 = True
+    if not printed80 and eff >= 0.8:
+        effYCut = None
+        for effY, valY in reversed(zip(effsYPIDA,valuesYPIDA)):
+            if valY <= val:
+                effYCut = effY
+                break
+        print("PIDA cut value: {}, X eff: {}, Y eff: {}".format(val,eff,effYCut))
+        printed80 = True
+    if not printed90 and eff >= 0.9:
+        effYCut = None
+        for effY, valY in reversed(zip(effsYPIDA,valuesYPIDA)):
+            if valY <= val:
+                effYCut = effY
+                break
+        print("PIDA cut value: {}, X eff: {}, Y eff: {}".format(val,eff,effYCut))
+        printed90 = True
+    if not printed95 and eff >= 0.95:
+        effYCut = None
+        for effY, valY in reversed(zip(effsYPIDA,valuesYPIDA)):
+            if valY <= val:
+                effYCut = effY
+                break
+        print("PIDA cut value: {}, X eff: {}, Y eff: {}".format(val,eff,effYCut))
+        printed95 = True
+    if not printed99 and eff >= 0.99:
+        effYCut = None
+        for effY, valY in reversed(zip(effsYPIDA,valuesYPIDA)):
+            if valY <= val:
+                effYCut = effY
+                break
+        print("PIDA cut value: {}, X eff: {}, Y eff: {}".format(val,eff,effYCut))
+        printed99 = True
+        break
+  return efficiency, efficiencyPIDA
 
 def findEffs(likelihoodHistNum,likelihoodHistDenom,tree,nMax,iPlane):
   """
@@ -233,6 +303,7 @@ def findEffs(likelihoodHistNum,likelihoodHistDenom,tree,nMax,iPlane):
   corresponding cut values
   """
   values = []
+  valuesPIDA = []
   n = min(nMax,tree.GetEntries())
   for iEntry in range(n):
     tree.GetEntry(iEntry)
@@ -240,14 +311,25 @@ def findEffs(likelihoodHistNum,likelihoodHistDenom,tree,nMax,iPlane):
     llhDenom = evalLogLikelihood(likelihoodHistDenom,tree,iPlane)
     llhr = llhNum-llhDenom
     values.append(llhr)
+    valuesPIDA.append(tree.PIDA[iPlane])
   values.sort()
   values.reverse()
   efficiency = []
   for i in range(n):
     eff = (i+1)/float(n)
     x = values[i]
+    #print "LH   {:8.3f} {:8.3f}".format(x,eff)
     efficiency.append(eff)
-  return efficiency, values
+  valuesPIDA.sort()
+  #valuesPIDA.reverse()
+  efficiencyPIDA = []
+  print
+  for i in range(n):
+    eff = (i+1)/float(n)
+    x = valuesPIDA[i]
+    #print "PIDA {:8.3f} {:8.3f}".format(x,eff)
+    efficiencyPIDA.append(eff)
+  return efficiency, values, efficiencyPIDA, valuesPIDA
 
 if __name__ == "__main__":
 
@@ -304,6 +386,7 @@ if __name__ == "__main__":
   for fileConfig in fileConfigs:
     f = root.TFile(fileConfig['fn'])
     tree = f.Get("likelihoodpidmaker/tree")
+    #tree.Print()
     fileConfig['f'] = f
     fileConfig['tree'] = tree
   
@@ -321,8 +404,11 @@ if __name__ == "__main__":
     ## Now Evaluate
     #pipLHDiffs = [Hist(200,-1000,1000) for f in fileConfigs]
     #pipLHDiffs = [Hist(100,-750,750) for f in fileConfigs]
-    pipLHDiffs = [Hist(50,-300,300) for f in fileConfigs]
-    for fileConfig,pipLHDiff in zip(fileConfigs,pipLHDiffs):
+    #pipLHDiffs = [Hist(50,-300,300) for f in fileConfigs]
+    #PIDAHists = [Hist(50,0,50) for f in fileConfigs]
+    pipLHDiffs = [Hist(100,-50,50) for f in fileConfigs]
+    PIDAHists = [Hist(100,0,20) for f in fileConfigs]
+    for fileConfig,pipLHDiff,PIDAHist in zip(fileConfigs,pipLHDiffs,PIDAHists):
       tree = fileConfig['tree']
       hists = []
       labels = []
@@ -350,6 +436,7 @@ if __name__ == "__main__":
           else:
             llhVal = evalLogLikelihood(likelihoods[fileConfig2['name']],tree,iPlane)
           hist.Fill(-llhVal)
+        PIDAHist.Fill(tree.PIDA[iPlane])
       axisHist = makeStdAxisHist(hists)
       setHistTitles(axisHist,"-log(L)","Events/bin")
       axisHist.Draw()
@@ -412,6 +499,57 @@ if __name__ == "__main__":
     c.SaveAs(saveName+".pdf")
     c.SetLogy(False)
 
+    # PIDA
+    PIDAHistsOverflown = []
+    for h, fileConfig in zip(PIDAHists,fileConfigs):
+      h.UseCurrentStyle()
+      h.SetLineColor(fileConfig['color'])
+      h.Scale(1./getIntegralAll(h))
+      h = h.Clone(h.GetName()+"_overflown")
+      showHistOverflow(h)
+      PIDAHistsOverflown.append(h)
+    axisHist = makeStdAxisHist(PIDAHists,freeTopSpace=0.35)
+    setHistTitles(axisHist,"PIDA","Normalized events/bin")
+    axisHist.Draw()
+    for h in reversed(PIDAHistsOverflown):
+      h.Draw("histsame")
+    leg = drawNormalLegend(PIDAHists,["{} MC, {} events".format(x['title'],x['nSkip']) for x in fileConfigs])
+    drawStandardCaptions(c,"Plane {}".format(iPlane))
+    saveName = "PIDA_plane{0}".format(iPlane)
+    c.SaveAs(saveName+".png")
+    c.SaveAs(saveName+".pdf")
+
+    # PIDA integral hists
+
+    PIDAHistInts = []
+    for h in PIDAHists:
+      h = getIntegralHist(h,reverse=True)
+      PIDAHistInts.append(h)
+    axisHist = makeStdAxisHist(PIDAHistInts,freeTopSpace=0.35)
+    setHistTitles(axisHist,"PIDA","Efficiency for PIDA #leq X")
+    axisHist.Draw()
+    for h in reversed(PIDAHistInts):
+      h.Draw("histsame")
+    leg = drawNormalLegend(PIDAHistInts,["{} MC, {} events".format(x['title'],x['nSkip']) for x in fileConfigs])
+    drawStandardCaptions(c,"Plane {}".format(iPlane))
+    saveName = "PIDA_Effs_plane{0}".format(iPlane)
+    c.SaveAs(saveName+".png")
+    c.SaveAs(saveName+".pdf")
+
+    c.SetLogy(True)
+    axisHist = makeStdAxisHist(PIDAHistInts,logy=True,ylim=[1e-5,1e2])
+    setHistTitles(axisHist,"PIDA","Efficiency for PIDA #leq X")
+    axisHist.Draw()
+    for h in reversed(PIDAHistInts):
+      h.Draw("histsame")
+    leg = drawNormalLegend(PIDAHistInts,["{} MC, {} events".format(x['title'],x['nSkip']) for x in fileConfigs])
+    drawStandardCaptions(c,"Plane {}".format(iPlane))
+    saveName = "PIDA_Effs_Log_plane{0}".format(iPlane)
+    c.SaveAs(saveName+".png")
+    c.SaveAs(saveName+".pdf")
+    c.SetLogy(False)
+
+
     ###############################################3
     ## Investigate track pitch
     #histConfigs = [
@@ -434,20 +572,26 @@ if __name__ == "__main__":
   pipFileConfig = [x for x in fileConfigs if x['name']=='pip'][0]
   pFileConfig = [x for x in fileConfigs if x['name']=='p'][0]
 #  effVeffPlane0 = makeLLHREffVEffGraph(likelihoodsPerPlane[0]['pip'],likelihoodsPerPlane[0]['p'],pipFileConfig['tree'],pFileConfig['tree'],pipFileConfig['nSkip'],pFileConfig['nSkip'],0)
-  effVeffPlane1 = makeLLHREffVEffGraph(likelihoodsPerPlane[1]['pip'],likelihoodsPerPlane[1]['p'],pipFileConfig['tree'],pFileConfig['tree'],pipFileConfig['nSkip'],pFileConfig['nSkip'],1)
+  effVeffPlane1, effVeffPlane1PIDA = makeLLHREffVEffGraph(likelihoodsPerPlane[1]['pip'],likelihoodsPerPlane[1]['p'],pipFileConfig['tree'],pFileConfig['tree'],pipFileConfig['nSkip'],pFileConfig['nSkip'],1)
   axisHist = Hist2D(1,0,1.0,1,0,1.0)
   setHistTitles(axisHist,"#pi^{+} Efficiency","Proton Efficiency")
   axisHist.Draw()
 #  effVeffPlane0.SetLineColor(root.kRed+1)
 #  effVeffPlane0.SetMarkerColor(root.kRed+1)
+#  effVeffPlane0.SetLineWidth(3)
+#  effVeffPlane0.Draw("L")
   effVeffPlane1.SetLineColor(root.kBlue)
   effVeffPlane1.SetMarkerColor(root.kBlue)
-#  effVeffPlane0.SetLineWidth(3)
   effVeffPlane1.SetLineWidth(3)
   effVeffPlane1.Draw("L")
-#  effVeffPlane0.Draw("L")
-#  leg = drawNormalLegend([effVeffPlane0,effVeffPlane1],["Plane 0", "Plane 1"])
-  drawStandardCaptions(c,"#pi^{+}/p likelihood ratio")
+  effVeffPlane1PIDA.SetLineColor(root.kGreen)
+  effVeffPlane1PIDA.SetMarkerColor(root.kGreen)
+  effVeffPlane1PIDA.SetLineWidth(3)
+  effVeffPlane1PIDA.Draw("L")
+
+  #leg = drawNormalLegend([effVeffPlane0,effVeffPlane1],["Plane 0", "Plane 1"])
+  leg = drawNormalLegend([effVeffPlane1,effVeffPlane1PIDA],["Likelihood PID", "PIDA"])
+  drawStandardCaptions(c,"Plane 1")
   saveName = "effVeff_pip_p"
   c.SaveAs(saveName+".png")
   c.SaveAs(saveName+".pdf")
