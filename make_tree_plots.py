@@ -57,7 +57,8 @@ root.gROOT.SetBatch(True)
 *Br   49 :true_endContained : true_endContained/O                            *
 """
 
-def makeLikelihood(fileConfig,iPlane,binningArg=[325,0.,26.,200,0.,100.],evalFrac=0.1):
+#def makeLikelihood(fileConfig,iPlane,binningArg=[325,0.,26.,200,0.,100.],evalFrac=0.1):
+def makeLikelihood(fileConfig,iPlane,binningArg=[130,0.,26.,100,0.,100.],evalFrac=0.2):
   ## Compute bin width from binning arg
   binWidthX = (float(binningArg[2])-binningArg[1])/binningArg[0]
   binWidthY = (float(binningArg[5])-binningArg[4])/binningArg[3]
@@ -254,7 +255,9 @@ if __name__ == "__main__":
   evalFrac = 0.1
   fileConfigs = [
     {
-      'fn': "06_15_00_v2_v2/Likelihood_p_v2.root",
+      'fn': "06_34_01_v1/new_p_v1.root",
+      #'fn': "06_34_01_v2/p_v2.root",
+      #'fn': "06_34_01_v3/p_v3.root",
       'pdg': 2212,
       'name': "p",
       'title': "p",
@@ -263,7 +266,9 @@ if __name__ == "__main__":
       'nPlanes': 2,
     },
     {
-      'fn': "06_15_00_v2_v2/Likelihood_pip_v2.root",
+      'fn': "06_34_01_v1/new_pip_v1.root",
+      #'fn': "06_34_01_v2/pip_v2.root",
+      #'fn': "06_34_01_v3/pip_v3.root",
       'pdg': 211,
       'name': "pip",
       'title': "#pi^{+}",
@@ -271,24 +276,24 @@ if __name__ == "__main__":
       'color': root.kBlue,
       'nPlanes': 2,
     },
-    {
-      'fn': "06_15_00_v2_v2/Likelihood_mup_v2.root",
-      'pdg': -13,
-      'name': "mup",
-      'title': "#mu^{+}",
-      'caption': "#mu^{+} MC sample",
-      'color': root.kBlack,
-      'nPlanes': 2,
-    },
-    {
-      'fn': "06_15_00_v2_v2/Likelihood_kp_v2.root",
-      'pdg': 321,
-      'name': "kp",
-      'title': "K^{+}",
-      'caption': "K^{+} MC sample",
-      'color': root.kGreen+1,
-      'nPlanes': 2,
-    },
+    #{
+    #  'fn': "06_15_00_v2_v2/Likelihood_mup_v2.root",
+    #  'pdg': -13,
+    #  'name': "mup",
+    #  'title': "#mu^{+}",
+    #  'caption': "#mu^{+} MC sample",
+    #  'color': root.kBlack,
+    #  'nPlanes': 2,
+    #},
+    #{
+    #  'fn': "06_15_00_v2_v2/Likelihood_kp_v2.root",
+    #  'pdg': 321,
+    #  'name': "kp",
+    #  'title': "K^{+}",
+    #  'caption': "K^{+} MC sample",
+    #  'color': root.kGreen+1,
+    #  'nPlanes': 2,
+    #},
   ]
   
   ## Compute bin width from binning arg
