@@ -658,6 +658,52 @@ if __name__ == "__main__":
     c.SaveAs(saveName+".png")
     c.SaveAs(saveName+".pdf")
 
+    ##############################################
+    ###############################################
+    # Stop and Not stop efficiency (integral)
+    ##############################################
+
+    pipLHDiffStopInts = []
+    pipLHDiffNotStopInts = []
+    PIDAStopInts = []
+    PIDANotStopInts = []
+    for h in pipLHDiffStops:
+        h.Scale(1./getIntegralAll(h))
+        pipLHDiffStopInts.append(getIntegralHist(h))
+    for h in pipLHDiffNotStops:
+        h.Scale(1./getIntegralAll(h))
+        pipLHDiffNotStopInts.append(getIntegralHist(h))
+        h = getIntegralHist(h)
+    for h in PIDAHistStops:
+        h.Scale(1./getIntegralAll(h))
+        PIDAStopInts.append(getIntegralHist(h,reverse=True))
+    for h in PIDAHistNotStops:
+        h.Scale(1./getIntegralAll(h))
+        PIDANotStopInts.append(getIntegralHist(h,reverse=True))
+
+    # pipLLR stop/not integral hists
+    axisHist = makeStdAxisHist(pipLHDiffStopInts+pipLHDiffNotStopInts,freeTopSpace=0.35)
+    setHistTitles(axisHist,"log(L_{#pi^{+}})-log(L_{p})","Efficiency for log(L_{#pi^{+}})-log(L_{p}) #geq X")
+    axisHist.Draw()
+    for h in reversed(pipLHDiffStopInts+pipLHDiffNotStopInts):
+      h.Draw("histsame")
+    leg = drawNormalLegend(pipLHDiffStopInts+pipLHDiffNotStopInts,["{} MC, Stopping".format(x['title']) for x in fileConfigs]+["{} MC, Inelastic & Decay".format(x['title']) for x in fileConfigs],wide=True)
+    drawStandardCaptions(c,"Plane {}".format(iPlane))
+    saveName = "LLHREndProcess_Effs_plane{0}".format(iPlane)
+    c.SaveAs(saveName+".png")
+    c.SaveAs(saveName+".pdf")
+
+    # PIDA stop/not integral hists
+    axisHist = makeStdAxisHist(PIDAStopInts+PIDANotStopInts,freeTopSpace=0.35)
+    setHistTitles(axisHist,"PIDA","Efficiency for PIDA #leq X")
+    axisHist.Draw()
+    for h in reversed(PIDAStopInts+PIDANotStopInts):
+      h.Draw("histsame")
+    leg = drawNormalLegend(PIDAStopInts+PIDANotStopInts,["{} MC, Stopping".format(x['title']) for x in fileConfigs]+["{} MC, Inelastic & Decay".format(x['title']) for x in fileConfigs],wide=True)
+    drawStandardCaptions(c,"Plane {}".format(iPlane))
+    saveName = "PIDAEndProcess_Effs_plane{0}".format(iPlane)
+    c.SaveAs(saveName+".png")
+    c.SaveAs(saveName+".pdf")
 
   ##############################################
   ###############################################
