@@ -12,13 +12,19 @@ if __name__ == "__main__":
 
   fileConfigs = [
     {
-      'fn': "06_34_01_v1/new_pip_v1.root",
+      #'fn': "06_34_01_v1/new_pip_v1.root",
+      #'fn': "06_34_01_v2/new_pip_v2.root",
+      'fn': "06_34_01_v3/new_pip_v3.root",
+      #'fn': "06_34_01_v4/new_pip_v4.root",
       'name': "pip",
       'title': "Isotropic #pi^{+} MC",
       'caption': "Isotropic #pi^{+} MC",
     },
     {
-      'fn': "06_34_01_v1/new_p_v1.root",
+      #'fn': "06_34_01_v1/new_p_v1.root",
+      #'fn': "06_34_01_v2/new_p_v2.root",
+      'fn': "06_34_01_v3/new_p_v3.root",
+      #'fn': "06_34_01_v4/new_p_v4.root",
       'name': "p",
       'title': "Isotropic Proton MC",
       'caption': "Isotropic Proton MC",

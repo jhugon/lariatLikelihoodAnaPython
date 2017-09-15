@@ -337,9 +337,10 @@ if __name__ == "__main__":
   evalFrac = 0.1
   fileConfigs = [
     {
-      'fn': "06_34_01_v1/new_p_v1.root",
-      #'fn': "06_34_01_v2/p_v2.root",
-      #'fn': "06_34_01_v3/p_v3.root",
+      #'fn': "06_34_01_v1/new_p_v1.root",
+      #'fn': "06_34_01_v2/new_p_v2.root",
+      #'fn': "06_34_01_v3/new_p_v3.root",
+      'fn': "06_34_01_v4/new_p_v4.root",
       'pdg': 2212,
       'name': "p",
       'title': "p",
@@ -348,9 +349,10 @@ if __name__ == "__main__":
       'nPlanes': 2,
     },
     {
-      'fn': "06_34_01_v1/new_pip_v1.root",
-      #'fn': "06_34_01_v2/pip_v2.root",
-      #'fn': "06_34_01_v3/pip_v3.root",
+      #'fn': "06_34_01_v1/new_pip_v1.root",
+      #'fn': "06_34_01_v2/new_pip_v2.root",
+      #'fn': "06_34_01_v3/new_pip_v3.root",
+      'fn': "06_34_01_v4/new_pip_v4.root",
       'pdg': 211,
       'name': "pip",
       'title': "#pi^{+}",
@@ -408,7 +410,9 @@ if __name__ == "__main__":
     #PIDAHists = [Hist(50,0,50) for f in fileConfigs]
     pipLHDiffs = [Hist(100,-50,50) for f in fileConfigs]
     PIDAHists = [Hist(100,0,20) for f in fileConfigs]
-    for fileConfig,pipLHDiff,PIDAHist in zip(fileConfigs,pipLHDiffs,PIDAHists):
+    pipLHDiffVKEs = [Hist2D(100,0,1000,100,-50,50) for f in fileConfigs]
+    PIDAVKEHists = [Hist2D(100,0,1000,100,0,20) for f in fileConfigs]
+    for fileConfig,pipLHDiff,PIDAHist,pipLHDiffVKE,PIDAVKEHist in zip(fileConfigs,pipLHDiffs,PIDAHists,pipLHDiffVKEs,PIDAVKEHists):
       tree = fileConfig['tree']
       hists = []
       labels = []
@@ -426,7 +430,10 @@ if __name__ == "__main__":
         tree.GetEntry(iEntry)
         llhpip = evalLogLikelihood(likelihoods['pip'],tree,iPlane)
         llhp = evalLogLikelihood(likelihoods['p'],tree,iPlane)
+        KE = tree.true_E - sqrt(tree.true_E**2-tree.true_p**2)
+        KE *= 1000. # from GeV to MeV
         pipLHDiff.Fill(llhpip-llhp)
+        pipLHDiffVKE.Fill(KE,llhpip-llhp)
         for hist, fileConfig2 in zip(hists,fileConfigs):
           llhVal = 0.
           if fileConfig2['name'] == 'pip':
@@ -437,6 +444,7 @@ if __name__ == "__main__":
             llhVal = evalLogLikelihood(likelihoods[fileConfig2['name']],tree,iPlane)
           hist.Fill(-llhVal)
         PIDAHist.Fill(tree.PIDA[iPlane])
+        PIDAVKEHist.Fill(KE,tree.PIDA[iPlane])
       axisHist = makeStdAxisHist(hists)
       setHistTitles(axisHist,"-log(L)","Events/bin")
       axisHist.Draw()
@@ -470,7 +478,6 @@ if __name__ == "__main__":
     c.SaveAs(saveName+".pdf")
 
     # pipLLH difference integral hists
-
     pipLHDiffInts = []
     for h in pipLHDiffs:
       h = getIntegralHist(h)
@@ -520,7 +527,6 @@ if __name__ == "__main__":
     c.SaveAs(saveName+".pdf")
 
     # PIDA integral hists
-
     PIDAHistInts = []
     for h in PIDAHists:
       h = getIntegralHist(h,reverse=True)
@@ -549,26 +555,38 @@ if __name__ == "__main__":
     c.SaveAs(saveName+".pdf")
     c.SetLogy(False)
 
+    ##############################################
+    ###############################################
+    # v KE Hists
+    ##############################################
+    setupCOLZFrame(c)
 
-    ###############################################3
-    ## Investigate track pitch
-    #histConfigs = [
-    #  {
-    #    'name': "pitch_plane{0}".format(iPlane),
-    #    'xtitle': "Pitch [cm]",
-    #    'ytitle': "Entries/bin",
-    #    #'binning': [100,0,25],
-    #    'binning': getLogBins(100,0.4,1e4),
-    #    'var': "pitchCorr",
-    #    'cuts': "",
-    #    'logx': True,
-    #    'logy': True,
-    #  },
-    #]
-    #plotOneHistOnePlot(fileConfigs,histConfigs,c,"dEdxAllTracksNoFile/tree")
+    # pipLLH differences v KE
+    for h, fileConfig in zip(pipLHDiffVKEs,fileConfigs):
+      h.UseCurrentStyle()
+      setHistTitles(h,"Generated Kinetic Energy [MeV]","log(L_{#pi^{+}})-log(L_{p})")
+      h.Draw("colz")
+      drawStandardCaptions(c,"{} MC, {} events, plane {}".format(fileConfig['title'],fileConfig['nSkip'],iPlane))
+      saveName = "LLHRVKE_{0}_plane{1}".format(fileConfig['name'],iPlane)
+      c.SaveAs(saveName+".png")
+      c.SaveAs(saveName+".pdf")
 
+    # PIDA differences v KE
+    for h, fileConfig in zip(PIDAVKEHists,fileConfigs):
+      h.UseCurrentStyle()
+      setHistTitles(h,"Generated Kinetic Energy [MeV]","PIDA")
+      h.Draw("colz")
+      drawStandardCaptions(c,"{} MC, {} events, plane {}".format(fileConfig['title'],fileConfig['nSkip'],iPlane))
+      saveName = "PIDAVKE_{0}_plane{1}".format(fileConfig['name'],iPlane)
+      c.SaveAs(saveName+".png")
+      c.SaveAs(saveName+".pdf")
+
+    setupCOLZFrame(c,True)
+
+  ##############################################
   ###############################################
   # Eff v Eff Curves
+  ##############################################
   pipFileConfig = [x for x in fileConfigs if x['name']=='pip'][0]
   pFileConfig = [x for x in fileConfigs if x['name']=='p'][0]
 #  effVeffPlane0 = makeLLHREffVEffGraph(likelihoodsPerPlane[0]['pip'],likelihoodsPerPlane[0]['p'],pipFileConfig['tree'],pFileConfig['tree'],pipFileConfig['nSkip'],pFileConfig['nSkip'],0)
@@ -590,7 +608,7 @@ if __name__ == "__main__":
   effVeffPlane1PIDA.Draw("L")
 
   #leg = drawNormalLegend([effVeffPlane0,effVeffPlane1],["Plane 0", "Plane 1"])
-  leg = drawNormalLegend([effVeffPlane1,effVeffPlane1PIDA],["Likelihood PID", "PIDA"])
+  leg = drawNormalLegend([effVeffPlane1,effVeffPlane1PIDA],["Likelihood PID", "PIDA"],position=[0.2,0.7,0.6,0.89])
   drawStandardCaptions(c,"Plane 1")
   saveName = "effVeff_pip_p"
   c.SaveAs(saveName+".png")
