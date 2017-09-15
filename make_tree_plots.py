@@ -88,13 +88,11 @@ def makeLikelihood(fileConfig,iPlane,binningArg=[325,0.,26.,200,0.,100.],evalFra
   binWidthX = (float(binningArg[2])-binningArg[1])/binningArg[0]
   binWidthY = (float(binningArg[5])-binningArg[4])/binningArg[3]
   binCaption = "Bin size: {0:.2f} mm #times {1:.2f} MeV/cm".format(binWidthX*10,binWidthY)
+  nPlanes = fileConfig['nPlanes']
+  nSkip = fileConfig['nSkip']
+  tree = fileConfig['tree']
 
   setupCOLZFrame(c)
-  tree = fileConfig['tree']
-  nEntries = tree.GetEntries()
-  nSkip = int(evalFrac*nEntries)
-  fileConfig['nSkip'] = nSkip
-  nPlanes = fileConfig['nPlanes']
   cuts = "pdg == {0:d} && plane == {1:d}".format(fileConfig['pdg'],iPlane)
 #  if fileConfig['name'] == 'p':
 #    cuts += "&& true_p < 0.75"
@@ -102,6 +100,7 @@ def makeLikelihood(fileConfig,iPlane,binningArg=[325,0.,26.,200,0.,100.],evalFra
 #  cuts += "&& resRange > 0.5"
   hist = Hist2D(*binningArg,TH2D=True)
   hist.SetName("pdg{0:d}_plane{1:d}".format(fileConfig['pdg'],iPlane))
+  print "Making Likelihood: "+hist.GetName()
   histname = hist.GetName()
   tree.Draw("dEdx:resRange >> {0}".format(histname),cuts,"",nEntries,nSkip)
 
@@ -334,6 +333,8 @@ if __name__ == "__main__":
 
   binningArg = [1980,1.,100.,200,0.,50.]
   evalFrac = 0.1
+  loadLikelihoodsFromFileName = None
+  #loadLikelihoodsFromFileName = "LHPID_Templates_v1.root"
   fileConfigs = [
     {
       #'fn': "06_34_01_v1/new_p_v1.root",
@@ -390,16 +391,42 @@ if __name__ == "__main__":
     #tree.Print()
     fileConfig['f'] = f
     fileConfig['tree'] = tree
+    nEntries = tree.GetEntries()
+    nSkip = int(evalFrac*nEntries)
+    fileConfig['nSkip'] = nSkip
   
-  outfile = root.TFile("LHPID_Templates.root","recreate")
+  outfile = None
+  if loadLikelihoodsFromFileName:
+    fileMode = "read"
+    outfile = root.TFile(loadLikelihoodsFromFileName,fileMode)
+  else:
+    fileMode = "recreate"
+    outfile = root.TFile("LHPID_Templates.root",fileMode)
   likelihoodsPerPlane = []
   for iPlane in range(2):
     likelihoods = {}
-    for fileConfig in fileConfigs:
-      #hists[fileConfig['name']], likelihoods[fileConfig['name']] = makeLikelihood(fileConfig,binningArg,evalFrac)
-      hist, likelihoods[fileConfig['name']] = makeLikelihood(fileConfig,iPlane,binningArg,evalFrac)
-      outfile.cd()
-      hist.Write()
+    if loadLikelihoodsFromFileName:
+      for fileConfig in fileConfigs:
+        histNameInFile = "pdg{0:d}_plane{1:d}".format(fileConfig['pdg'],iPlane)
+        likelihood = outfile.Get(histNameInFile)
+        name = likelihood.GetName() # also checking if a null pointer
+        likelihood.SetName(name+"Likelihood")
+        for iBinX in range(likelihood.GetNbinsX()+2):
+          for iBinY in range(likelihood.GetNbinsY()+2):
+            iBin = likelihood.GetBin(iBinX,iBinY)
+            content = likelihood.GetBinContent(iBin)
+            if content == 0:
+              likelihood.SetBinContent(iBin,1e-1)
+        likelihoodIntegral = likelihood.Integral()
+        if likelihoodIntegral != 0.:
+          likelihood.Scale(1./likelihoodIntegral)
+        likelihoods[fileConfig['name']] = likelihood
+    else:
+      for fileConfig in fileConfigs:
+        #hists[fileConfig['name']], likelihoods[fileConfig['name']] = makeLikelihood(fileConfig,binningArg,evalFrac)
+        hist, likelihoods[fileConfig['name']] = makeLikelihood(fileConfig,iPlane,binningArg,evalFrac)
+        outfile.cd()
+        hist.Write()
     likelihoodsPerPlane.append(likelihoods)
     ## Now Save Histogram File
     ## Now Evaluate
