@@ -83,8 +83,7 @@ root.gROOT.SetBatch(True)
 
 """
 
-#def makeLikelihood(fileConfig,iPlane,binningArg=[325,0.,26.,200,0.,100.],evalFrac=0.1):
-def makeLikelihood(fileConfig,iPlane,binningArg=[130,0.,26.,100,0.,100.],evalFrac=0.2):
+def makeLikelihood(fileConfig,iPlane,binningArg=[325,0.,26.,200,0.,100.],evalFrac=0.1):
   ## Compute bin width from binning arg
   binWidthX = (float(binningArg[2])-binningArg[1])/binningArg[0]
   binWidthY = (float(binningArg[5])-binningArg[4])/binningArg[3]
