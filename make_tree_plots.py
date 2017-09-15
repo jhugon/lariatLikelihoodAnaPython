@@ -410,9 +410,16 @@ if __name__ == "__main__":
     #PIDAHists = [Hist(50,0,50) for f in fileConfigs]
     pipLHDiffs = [Hist(100,-50,50) for f in fileConfigs]
     PIDAHists = [Hist(100,0,20) for f in fileConfigs]
-    pipLHDiffVKEs = [Hist2D(100,0,1000,100,-50,50) for f in fileConfigs]
-    PIDAVKEHists = [Hist2D(100,0,1000,100,0,20) for f in fileConfigs]
-    for fileConfig,pipLHDiff,PIDAHist,pipLHDiffVKE,PIDAVKEHist in zip(fileConfigs,pipLHDiffs,PIDAHists,pipLHDiffVKEs,PIDAVKEHists):
+    pipLHDiffStops = [Hist(50,-200,200) for f in fileConfigs]
+    PIDAHistStops = [Hist(50,0,40) for f in fileConfigs]
+    pipLHDiffNotStops = [Hist(50,-200,200) for f in fileConfigs]
+    PIDAHistNotStops = [Hist(50,0,40) for f in fileConfigs]
+    pipLHDiffVKEs = [Hist2D(100,0,1000,100,-200,200) for f in fileConfigs]
+    PIDAVKEHists = [Hist2D(100,0,1000,100,0,40) for f in fileConfigs]
+    for fileConfig,pipLHDiff,PIDAHist,pipLHDiffVKE,PIDAVKEHist, \
+            pipLHDiffStop,PIDAHistStop,pipLHDiffNotStop,PIDAHistNotStop \
+            in zip(fileConfigs,pipLHDiffs,PIDAHists,pipLHDiffVKEs,PIDAVKEHists, \
+                pipLHDiffStops,PIDAHistStops,pipLHDiffNotStops,PIDAHistNotStops):
       tree = fileConfig['tree']
       hists = []
       labels = []
@@ -445,6 +452,12 @@ if __name__ == "__main__":
           hist.Fill(-llhVal)
         PIDAHist.Fill(tree.PIDA[iPlane])
         PIDAVKEHist.Fill(KE,tree.PIDA[iPlane])
+        if tree.true_endProcess == "LArVoxelReadoutScoringProcess": # stopping
+            pipLHDiffStop.Fill(llhpip-llhp)
+            PIDAHistStop.Fill(tree.PIDA[iPlane])
+        else:
+            pipLHDiffNotStop.Fill(llhpip-llhp)
+            PIDAHistNotStop.Fill(tree.PIDA[iPlane])
       axisHist = makeStdAxisHist(hists)
       setHistTitles(axisHist,"-log(L)","Events/bin")
       axisHist.Draw()
@@ -455,6 +468,10 @@ if __name__ == "__main__":
       drawStandardCaptions(c,"{}, plane {}".format(fileConfig['caption'], iPlane))
       saveName = "LHCompare_{0}_plane{1}".format(fileConfig['name'],iPlane)
       c.SaveAs(saveName+".png")
+
+    #########################################
+    ## Plot LLRs & PIDA & integrals
+    #########################################
     
     # pipLLH differences
     pipLHDiffsOverflown = []
@@ -582,6 +599,65 @@ if __name__ == "__main__":
       c.SaveAs(saveName+".pdf")
 
     setupCOLZFrame(c,True)
+    ##############################################
+    ###############################################
+    # Stop and Not stop hists
+    ##############################################
+
+    # pipLLH differences Stop/Not
+    pipLHDiffStopsOverflown = []
+    for h, fileConfig in zip(pipLHDiffStops,fileConfigs):
+      h.UseCurrentStyle()
+      h.SetLineColor(fileConfig['color'])
+      h = h.Clone(h.GetName()+"_overflown")
+      showHistOverflow(h)
+      pipLHDiffStopsOverflown.append(h)
+    pipLHDiffNotStopsOverflown = []
+    for h, fileConfig in zip(pipLHDiffNotStops,fileConfigs):
+      h.UseCurrentStyle()
+      h.SetLineColor(fileConfig['color'])
+      h.SetLineStyle(2)
+      h = h.Clone(h.GetName()+"_overflown")
+      showHistOverflow(h)
+      pipLHDiffNotStopsOverflown.append(h)
+    axisHist = makeStdAxisHist(pipLHDiffStops+pipLHDiffNotStops,freeTopSpace=0.35)
+    setHistTitles(axisHist,"log(L_{#pi^{+}})-log(L_{p})","Events/bin")
+    axisHist.Draw()
+    for h in reversed(pipLHDiffStopsOverflown+pipLHDiffNotStopsOverflown):
+      h.Draw("histsame")
+    leg = drawNormalLegend(pipLHDiffStopsOverflown+pipLHDiffNotStopsOverflown,["{} MC, Stopping".format(x['title']) for x in fileConfigs]+["{} MC, Inelastic & Decay".format(x['title']) for x in fileConfigs],wide=True)
+    drawStandardCaptions(c,"Plane {}".format(iPlane))
+    saveName = "LLHREndProcess_plane{0}".format(iPlane)
+    c.SaveAs(saveName+".png")
+    c.SaveAs(saveName+".pdf")
+
+    # PIDA differences Stop/Not
+    PIDAHistStopsOverflown = []
+    for h, fileConfig in zip(PIDAHistStops,fileConfigs):
+      h.UseCurrentStyle()
+      h.SetLineColor(fileConfig['color'])
+      h = h.Clone(h.GetName()+"_overflown")
+      showHistOverflow(h)
+      PIDAHistStopsOverflown.append(h)
+    PIDAHistNotStopsOverflown = []
+    for h, fileConfig in zip(PIDAHistNotStops,fileConfigs):
+      h.UseCurrentStyle()
+      h.SetLineColor(fileConfig['color'])
+      h.SetLineStyle(2)
+      h = h.Clone(h.GetName()+"_overflown")
+      showHistOverflow(h)
+      PIDAHistNotStopsOverflown.append(h)
+    axisHist = makeStdAxisHist(PIDAHistStops+PIDAHistNotStops,freeTopSpace=0.35)
+    setHistTitles(axisHist,"PIDA","Events/bin")
+    axisHist.Draw()
+    for h in reversed(PIDAHistStopsOverflown+PIDAHistNotStopsOverflown):
+      h.Draw("histsame")
+    leg = drawNormalLegend(PIDAHistStopsOverflown+PIDAHistNotStopsOverflown,["{} MC, Stopping".format(x['title']) for x in fileConfigs]+["{} MC, Inelastic & Decay".format(x['title']) for x in fileConfigs],wide=True)
+    drawStandardCaptions(c,"Plane {}".format(iPlane))
+    saveName = "PIDAEndProcess_plane{0}".format(iPlane)
+    c.SaveAs(saveName+".png")
+    c.SaveAs(saveName+".pdf")
+
 
   ##############################################
   ###############################################
