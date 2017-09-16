@@ -161,11 +161,11 @@ def evalLogLikelihood(likelihoodHist,tree,iPlane):
     print(tree.dEdx)
   return result
 
-def makeLLHREffVEffGraph(likelihoodHistNum,likelihoodHistDenom,treeX,treeY,nMaxX,nMaxY,iPlane):
+def makeLLHREffVEffGraph(likelihoodHistNum,likelihoodHistDenom,treeX,treeY,nMaxX,nMaxY,iPlane,stopOnly=False,notStopOnly=False):
   efficiency = root.TGraph()
   efficiencyPIDA = root.TGraph()
-  effsX, valuesX, effsXPIDA, valuesXPIDA = findEffs(likelihoodHistNum,likelihoodHistDenom,treeX,nMaxX,iPlane)
-  effsY, valuesY, effsYPIDA, valuesYPIDA = findEffs(likelihoodHistNum,likelihoodHistDenom,treeY,nMaxY,iPlane)
+  effsX, valuesX, effsXPIDA, valuesXPIDA = findEffs(likelihoodHistNum,likelihoodHistDenom,treeX,nMaxX,iPlane,stopOnly=stopOnly,notStopOnly=notStopOnly)
+  effsY, valuesY, effsYPIDA, valuesYPIDA = findEffs(likelihoodHistNum,likelihoodHistDenom,treeY,nMaxY,iPlane,stopOnly=stopOnly,notStopOnly=notStopOnly)
   nX = len(effsX)
   nY = len(effsY)
   # Eff v Eff plot
@@ -197,7 +197,12 @@ def makeLLHREffVEffGraph(likelihoodHistNum,likelihoodHistDenom,treeX,treeY,nMaxX
   efficiency.SetPoint(nX+1,1,1)
   efficiencyPIDA.SetPoint(nX+1,1,1)
   # Now print efficiency
-  print("For plane: {}".format(iPlane))
+  effMode = "All"
+  if stopOnly:
+    effMode = "Stopping Only"
+  if notStopOnly:
+    effMode = "Inelastic & Decay Only"
+  print("For plane: {} {}".format(iPlane,effMode))
   printed65 = False
   printed80 = False
   printed90 = False
@@ -295,7 +300,7 @@ def makeLLHREffVEffGraph(likelihoodHistNum,likelihoodHistDenom,treeX,treeY,nMaxX
         break
   return efficiency, efficiencyPIDA
 
-def findEffs(likelihoodHistNum,likelihoodHistDenom,tree,nMax,iPlane):
+def findEffs(likelihoodHistNum,likelihoodHistDenom,tree,nMax,iPlane,stopOnly=False,notStopOnly=False):
   """
   Returns a list of efficiency values and a list of the
   corresponding cut values
@@ -305,11 +310,16 @@ def findEffs(likelihoodHistNum,likelihoodHistDenom,tree,nMax,iPlane):
   n = min(nMax,tree.GetEntries())
   for iEntry in range(n):
     tree.GetEntry(iEntry)
+    if stopOnly and tree.true_endProcess != "LArVoxelReadoutScoringProcess":
+        continue
+    if notStopOnly and tree.true_endProcess == "LArVoxelReadoutScoringProcess":
+        continue
     llhNum = evalLogLikelihood(likelihoodHistNum,tree,iPlane)
     llhDenom = evalLogLikelihood(likelihoodHistDenom,tree,iPlane)
     llhr = llhNum-llhDenom
     values.append(llhr)
     valuesPIDA.append(tree.PIDA[iPlane])
+  n = len(values)
   values.sort()
   values.reverse()
   efficiency = []
@@ -334,13 +344,14 @@ if __name__ == "__main__":
   binningArg = [1980,1.,100.,200,0.,50.]
   evalFrac = 0.1
   loadLikelihoodsFromFileName = None
-  #loadLikelihoodsFromFileName = "LHPID_Templates_v1.root"
+  #loadLikelihoodsFromFileName = "LHPID_Templates_v3.root"
+  #loadLikelihoodsFromFileName = "LHPID_Templates_v4.root"
   fileConfigs = [
     {
-      #'fn': "06_34_01_v1/new_p_v1.root",
-      #'fn': "06_34_01_v2/new_p_v2.root",
-      #'fn': "06_34_01_v3/new_p_v3.root",
-      'fn': "06_34_01_v4/new_p_v4.root",
+      #'fn': "06_34_01_v1/new_p_v1.root", # Small Not-smeared
+      #'fn': "06_34_01_v2/new_p_v2.root", # Small Smeared
+      #'fn': "06_34_01_v3/new_p_v3.root", # Large Smeared
+      'fn': "06_34_01_v4/new_p_v4.root", # Large Not-smeared
       'pdg': 2212,
       'name': "p",
       'title': "p",
@@ -739,6 +750,9 @@ if __name__ == "__main__":
   pFileConfig = [x for x in fileConfigs if x['name']=='p'][0]
 #  effVeffPlane0 = makeLLHREffVEffGraph(likelihoodsPerPlane[0]['pip'],likelihoodsPerPlane[0]['p'],pipFileConfig['tree'],pFileConfig['tree'],pipFileConfig['nSkip'],pFileConfig['nSkip'],0)
   effVeffPlane1, effVeffPlane1PIDA = makeLLHREffVEffGraph(likelihoodsPerPlane[1]['pip'],likelihoodsPerPlane[1]['p'],pipFileConfig['tree'],pFileConfig['tree'],pipFileConfig['nSkip'],pFileConfig['nSkip'],1)
+  effVeffPlane1Stop, effVeffPlane1PIDAStop = makeLLHREffVEffGraph(likelihoodsPerPlane[1]['pip'],likelihoodsPerPlane[1]['p'],pipFileConfig['tree'],pFileConfig['tree'],pipFileConfig['nSkip'],pFileConfig['nSkip'],1,stopOnly=True)
+  effVeffPlane1NotStop, effVeffPlane1PIDANotStop = makeLLHREffVEffGraph(likelihoodsPerPlane[1]['pip'],likelihoodsPerPlane[1]['p'],pipFileConfig['tree'],pFileConfig['tree'],pipFileConfig['nSkip'],pFileConfig['nSkip'],1,notStopOnly=True)
+
   axisHist = Hist2D(1,0,1.0,1,0,1.0)
   setHistTitles(axisHist,"#pi^{+} Efficiency","Proton Efficiency")
   axisHist.Draw()
@@ -762,5 +776,85 @@ if __name__ == "__main__":
   c.SaveAs(saveName+".png")
   c.SaveAs(saveName+".pdf")
 
+  ##############################################
+  ###############################################
+  # Eff v Eff Curves Stopping Only
+  ##############################################
+  axisHist = Hist2D(1,0,1.0,1,0,1.0)
+  setHistTitles(axisHist,"#pi^{+} Efficiency","Proton Efficiency")
+  axisHist.Draw()
+  effVeffPlane1Stop.SetLineColor(root.kBlue)
+  effVeffPlane1Stop.SetMarkerColor(root.kBlue)
+  effVeffPlane1Stop.SetLineWidth(3)
+  effVeffPlane1Stop.Draw("L")
+  effVeffPlane1PIDAStop.SetLineColor(root.kGreen)
+  effVeffPlane1PIDAStop.SetMarkerColor(root.kGreen)
+  effVeffPlane1PIDAStop.SetLineWidth(3)
+  effVeffPlane1PIDAStop.Draw("L")
+
+  leg = drawNormalLegend([effVeffPlane1Stop,effVeffPlane1PIDAStop],["Likelihood PID", "PIDA"],position=[0.2,0.7,0.6,0.89])
+  drawStandardCaptions(c,"Stopping, Plane 1")
+  saveName = "effVeff_stop_pip_p"
+  c.SaveAs(saveName+".png")
+  c.SaveAs(saveName+".pdf")
+
+  ##############################################
+  ###############################################
+  # Eff v Eff Curves Stopping Only
+  ##############################################
+  axisHist = Hist2D(1,0,1.0,1,0,1.0)
+  setHistTitles(axisHist,"#pi^{+} Efficiency","Proton Efficiency")
+  axisHist.Draw()
+  effVeffPlane1NotStop.SetLineColor(root.kBlue)
+  effVeffPlane1NotStop.SetMarkerColor(root.kBlue)
+  effVeffPlane1NotStop.SetLineWidth(3)
+  effVeffPlane1NotStop.Draw("L")
+  effVeffPlane1PIDANotStop.SetLineColor(root.kGreen)
+  effVeffPlane1PIDANotStop.SetMarkerColor(root.kGreen)
+  effVeffPlane1PIDANotStop.SetLineWidth(3)
+  effVeffPlane1PIDANotStop.Draw("L")
+
+  leg = drawNormalLegend([effVeffPlane1NotStop,effVeffPlane1PIDANotStop],["Likelihood PID", "PIDA"],position=[0.2,0.7,0.6,0.89])
+  drawStandardCaptions(c,"Inelastic & Decay, Plane 1")
+  saveName = "effVeff_notstop_pip_p"
+  c.SaveAs(saveName+".png")
+  c.SaveAs(saveName+".pdf")
+
+  ##############################################
+  ###############################################
+  # Eff v Eff Curves Showing All, Stopping, and Not stopping
+  ##############################################
+  axisHist = Hist2D(1,0.7,1.0,1,0,1.0)
+  setHistTitles(axisHist,"#pi^{+} Efficiency","Proton Efficiency")
+  axisHist.Draw()
+  #effVeffPlane1.Draw("L")
+  #effVeffPlane1PIDA.Draw("L")
+  #effVeffPlane1NotStop.SetLineStyle(2)
+  #effVeffPlane1NotStop.SetLineWidth(2)
+  effVeffPlane1NotStop.Draw("L")
+  #effVeffPlane1PIDANotStop.SetLineStyle(2)
+  #effVeffPlane1PIDANotStop.SetLineWidth(2)
+  effVeffPlane1PIDANotStop.Draw("L")
+  effVeffPlane1Stop.SetLineStyle(2)
+  #effVeffPlane1Stop.SetLineWidth(2)
+  effVeffPlane1Stop.Draw("L")
+  effVeffPlane1PIDAStop.SetLineStyle(2)
+  #effVeffPlane1PIDAStop.SetLineWidth(2)
+  effVeffPlane1PIDAStop.Draw("L")
+
+  leg = drawNormalLegend(
+                        #[effVeffPlane1,effVeffPlane1PIDA,
+                        [effVeffPlane1NotStop,effVeffPlane1PIDANotStop,
+                        effVeffPlane1Stop,effVeffPlane1PIDAStop],
+                        #["Likelihood PID All", "PIDA All",
+                        ["Likelihood PID Inelastic & Decay", "PIDA Inelastic & Decay",
+                        "Likelihood PID Stopping", "PIDA Stopping"],
+                        position=[0.2,0.7,0.6,0.89])
+  drawStandardCaptions(c,"Plane 1")
+  saveName = "effVeff_allLines_pip_p"
+  c.SaveAs(saveName+".png")
+  c.SaveAs(saveName+".pdf")
+
   ########################
+
   outfile.Close()
