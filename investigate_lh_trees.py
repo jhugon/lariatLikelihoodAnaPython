@@ -7,6 +7,9 @@ root.gROOT.SetBatch(True)
 # pip end processes: pi+Inelastic LArVoxelReadoutScoringProcess Decay
 # p end processes: protonInelastic LArVoxelReadoutScoringProcess
 
+#PRELIMINARYSTRING="LArIAT MC"
+PRELIMINARYSTRING="LArIAT Simulation"
+
 if __name__ == "__main__":
   c = root.TCanvas()
 
@@ -17,8 +20,9 @@ if __name__ == "__main__":
       'fn': "06_34_01_v3/new_pip_v3.root",
       #'fn': "06_34_01_v4/new_pip_v4.root",
       'name': "pip",
-      'title': "Isotropic #pi^{+} MC",
-      'caption': "Isotropic #pi^{+} MC",
+      'title': "Isotropic #pi^{+}",
+      'caption': "Isotropic #pi^{+}",
+      'preliminaryString':PRELIMINARYSTRING,
     },
     {
       #'fn': "06_34_01_v1/new_p_v1.root",
@@ -26,8 +30,9 @@ if __name__ == "__main__":
       'fn': "06_34_01_v3/new_p_v3.root",
       #'fn': "06_34_01_v4/new_p_v4.root",
       'name': "p",
-      'title': "Isotropic Proton MC",
-      'caption': "Isotropic Proton MC",
+      'title': "Isotropic Proton",
+      'caption': "Isotropic Proton",
+      'preliminaryString':PRELIMINARYSTRING,
     },
   ]
   for i in range(len(fileConfigs)):
@@ -42,6 +47,7 @@ if __name__ == "__main__":
       'var': "trkLen",
       'cuts': "",
       #'normalize': True,
+      'preliminaryString':PRELIMINARYSTRING,
     },
     {
       'name': "true_length",
@@ -51,6 +57,7 @@ if __name__ == "__main__":
       'var': "true_length",
       'cuts': "",
       #'normalize': True,
+      'preliminaryString':PRELIMINARYSTRING,
     },
     {
       'name': "true_p",
@@ -60,6 +67,7 @@ if __name__ == "__main__":
       'var': "true_p*1000.",
       'cuts': "",
       #'normalize': True,
+      'preliminaryString':PRELIMINARYSTRING,
     },
     {
       'name': "true_KE",
@@ -69,6 +77,7 @@ if __name__ == "__main__":
       'var': "(true_E-sqrt(pow(true_E,2)-pow(true_p,2)))*1000.",
       'cuts': "",
       #'normalize': True,
+      'preliminaryString':PRELIMINARYSTRING,
     },
   ]
   plotManyFilesOnePlot(fileConfigs,histConfigs,c,"likelihoodpidmaker/tree",outPrefix="LHSample_")

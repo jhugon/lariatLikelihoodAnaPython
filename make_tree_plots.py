@@ -4,6 +4,9 @@ import ROOT as root
 from helpers import *
 root.gROOT.SetBatch(True)
 
+#PRELIMINARYSTRING="LArIAT MC"
+PRELIMINARYSTRING="LArIAT Simulation"
+
 """
 *Br    0 :resRange  : vector<float>                                          *
 *Br    1 :pitch     : vector<float>                                          *
@@ -106,7 +109,7 @@ def makeLikelihood(fileConfig,iPlane,binningArg=[325,0.,26.,200,0.,100.],evalFra
 
   setHistTitles(hist,"Residual Range [cm]","dE/dx [MeV/cm]")
   hist.Draw("colz")
-  drawStandardCaptions(c,"{}, plane {}".format(fileConfig["caption"],iPlane),captionright2="Events: {0:.0f}".format(nEntries-nSkip),captionright3="Entries: {0:.0f}".format(hist.GetEntries()),captionright1=binCaption)
+  drawStandardCaptions(c,"{}, plane {}".format(fileConfig["caption"],iPlane),captionright2="Events: {0:.0f}".format(nEntries-nSkip),captionright3="Entries: {0:.0f}".format(hist.GetEntries()),captionright1=binCaption,preliminaryString=PRELIMINARYSTRING)
   plotfn = "dEdxVrange_{}_plane{}.png".format(fileConfig['name'],iPlane)
   c.SaveAs(plotfn)
 
@@ -125,7 +128,7 @@ def makeLikelihood(fileConfig,iPlane,binningArg=[325,0.,26.,200,0.,100.],evalFra
   setHistTitles(likelihood,"Residual Range [cm]","dE/dx [MeV/cm]")
   #setHistRange(likelihood,0,20,0,30)
   likelihood.Draw("colz")
-  drawStandardCaptions(c,"Likelihood for {}, plane {}".format(fileConfig["title"],iPlane),captionright2="Events: {0:.0f}".format(nEntries-nSkip),captionright3="Entries: {0:.0f}".format(likelihood.GetEntries()),captionright1=binCaption,colorInside=root.kWhite)
+  drawStandardCaptions(c,"Likelihood for {}, plane {}".format(fileConfig["title"],iPlane),captionright2="Events: {0:.0f}".format(nEntries-nSkip),captionright3="Entries: {0:.0f}".format(likelihood.GetEntries()),captionright1=binCaption,colorInside=root.kWhite,preliminaryString=PRELIMINARYSTRING)
   plotfn = "LH_{}_plane{}.png".format(fileConfig['name'],iPlane)
   c.SaveAs(plotfn)
   setupCOLZFrame(c,True)
@@ -342,6 +345,7 @@ def findEffs(likelihoodHistNum,likelihoodHistDenom,tree,nMax,iPlane,stopOnly=Fal
 if __name__ == "__main__":
 
   binningArg = [1980,1.,100.,200,0.,50.]
+  #binningArg = [1180,1.,60.,100,0.,25.] # just for pretty plot of LH
   evalFrac = 0.1
   loadLikelihoodsFromFileName = None
   #loadLikelihoodsFromFileName = "LHPID_Templates_v3.root"
@@ -350,24 +354,24 @@ if __name__ == "__main__":
     {
       #'fn': "06_34_01_v1/new_p_v1.root", # Small Not-smeared
       #'fn': "06_34_01_v2/new_p_v2.root", # Small Smeared
-      #'fn': "06_34_01_v3/new_p_v3.root", # Large Smeared
-      'fn': "06_34_01_v4/new_p_v4.root", # Large Not-smeared
+      'fn': "06_34_01_v3/new_p_v3.root", # Large Smeared
+      #'fn': "06_34_01_v4/new_p_v4.root", # Large Not-smeared
       'pdg': 2212,
       'name': "p",
       'title': "p",
-      'caption': "proton MC sample",
+      'caption': "Proton Sample",
       'color': root.kRed,
       'nPlanes': 2,
     },
     {
       #'fn': "06_34_01_v1/new_pip_v1.root",
       #'fn': "06_34_01_v2/new_pip_v2.root",
-      #'fn': "06_34_01_v3/new_pip_v3.root",
-      'fn': "06_34_01_v4/new_pip_v4.root",
+      'fn': "06_34_01_v3/new_pip_v3.root",
+      #'fn': "06_34_01_v4/new_pip_v4.root",
       'pdg': 211,
       'name': "pip",
       'title': "#pi^{+}",
-      'caption': "#pi^{+} MC sample",
+      'caption': "#pi^{+} Sample",
       'color': root.kBlue,
       'nPlanes': 2,
     },
@@ -445,8 +449,8 @@ if __name__ == "__main__":
     #pipLHDiffs = [Hist(100,-750,750) for f in fileConfigs]
     #pipLHDiffs = [Hist(50,-300,300) for f in fileConfigs]
     #PIDAHists = [Hist(50,0,50) for f in fileConfigs]
-    pipLHDiffs = [Hist(100,-50,50) for f in fileConfigs]
-    PIDAHists = [Hist(100,0,20) for f in fileConfigs]
+    pipLHDiffs = [Hist(50,-400,400) for f in fileConfigs]
+    PIDAHists = [Hist(100,0,40) for f in fileConfigs]
     pipLHDiffStops = [Hist(50,-200,200) for f in fileConfigs]
     PIDAHistStops = [Hist(50,0,40) for f in fileConfigs]
     pipLHDiffNotStops = [Hist(50,-200,200) for f in fileConfigs]
@@ -502,7 +506,7 @@ if __name__ == "__main__":
         showHistOverflow(hist)
         hist.Draw("histsame")
       leg = drawNormalLegend(hists,labels)
-      drawStandardCaptions(c,"{}, plane {}".format(fileConfig['caption'], iPlane))
+      drawStandardCaptions(c,"{}, plane {}".format(fileConfig['caption'], iPlane),preliminaryString=PRELIMINARYSTRING)
       saveName = "LHCompare_{0}_plane{1}".format(fileConfig['name'],iPlane)
       c.SaveAs(saveName+".png")
 
@@ -526,7 +530,7 @@ if __name__ == "__main__":
     for h in reversed(pipLHDiffsOverflown):
       h.Draw("histsame")
     leg = drawNormalLegend(pipLHDiffs,["{} MC, {} events".format(x['title'],x['nSkip']) for x in fileConfigs])
-    drawStandardCaptions(c,"Plane {}".format(iPlane))
+    drawStandardCaptions(c,"Plane {}".format(iPlane),preliminaryString=PRELIMINARYSTRING)
     saveName = "LLHR_plane{0}".format(iPlane)
     c.SaveAs(saveName+".png")
     c.SaveAs(saveName+".pdf")
@@ -542,7 +546,7 @@ if __name__ == "__main__":
     for h in reversed(pipLHDiffInts):
       h.Draw("histsame")
     leg = drawNormalLegend(pipLHDiffInts,["{} MC, {} events".format(x['title'],x['nSkip']) for x in fileConfigs])
-    drawStandardCaptions(c,"Plane {}".format(iPlane))
+    drawStandardCaptions(c,"Plane {}".format(iPlane),preliminaryString=PRELIMINARYSTRING)
     saveName = "LLHR_Effs_plane{0}".format(iPlane)
     c.SaveAs(saveName+".png")
     c.SaveAs(saveName+".pdf")
@@ -554,7 +558,7 @@ if __name__ == "__main__":
     for h in reversed(pipLHDiffInts):
       h.Draw("histsame")
     leg = drawNormalLegend(pipLHDiffInts,["{} MC, {} events".format(x['title'],x['nSkip']) for x in fileConfigs])
-    drawStandardCaptions(c,"Plane {}".format(iPlane))
+    drawStandardCaptions(c,"Plane {}".format(iPlane),preliminaryString=PRELIMINARYSTRING)
     saveName = "LLHR_Effs_Log_plane{0}".format(iPlane)
     c.SaveAs(saveName+".png")
     c.SaveAs(saveName+".pdf")
@@ -575,7 +579,7 @@ if __name__ == "__main__":
     for h in reversed(PIDAHistsOverflown):
       h.Draw("histsame")
     leg = drawNormalLegend(PIDAHists,["{} MC, {} events".format(x['title'],x['nSkip']) for x in fileConfigs])
-    drawStandardCaptions(c,"Plane {}".format(iPlane))
+    drawStandardCaptions(c,"Plane {}".format(iPlane),preliminaryString=PRELIMINARYSTRING)
     saveName = "PIDA_plane{0}".format(iPlane)
     c.SaveAs(saveName+".png")
     c.SaveAs(saveName+".pdf")
@@ -591,7 +595,7 @@ if __name__ == "__main__":
     for h in reversed(PIDAHistInts):
       h.Draw("histsame")
     leg = drawNormalLegend(PIDAHistInts,["{} MC, {} events".format(x['title'],x['nSkip']) for x in fileConfigs])
-    drawStandardCaptions(c,"Plane {}".format(iPlane))
+    drawStandardCaptions(c,"Plane {}".format(iPlane),preliminaryString=PRELIMINARYSTRING)
     saveName = "PIDA_Effs_plane{0}".format(iPlane)
     c.SaveAs(saveName+".png")
     c.SaveAs(saveName+".pdf")
@@ -603,7 +607,7 @@ if __name__ == "__main__":
     for h in reversed(PIDAHistInts):
       h.Draw("histsame")
     leg = drawNormalLegend(PIDAHistInts,["{} MC, {} events".format(x['title'],x['nSkip']) for x in fileConfigs])
-    drawStandardCaptions(c,"Plane {}".format(iPlane))
+    drawStandardCaptions(c,"Plane {}".format(iPlane),preliminaryString=PRELIMINARYSTRING)
     saveName = "PIDA_Effs_Log_plane{0}".format(iPlane)
     c.SaveAs(saveName+".png")
     c.SaveAs(saveName+".pdf")
@@ -620,7 +624,7 @@ if __name__ == "__main__":
       h.UseCurrentStyle()
       setHistTitles(h,"Generated Kinetic Energy [MeV]","log(L_{#pi^{+}})-log(L_{p})")
       h.Draw("colz")
-      drawStandardCaptions(c,"{} MC, {} events, plane {}".format(fileConfig['title'],fileConfig['nSkip'],iPlane))
+      drawStandardCaptions(c,"{} MC, {} events, plane {}".format(fileConfig['title'],fileConfig['nSkip'],iPlane),preliminaryString=PRELIMINARYSTRING)
       saveName = "LLHRVKE_{0}_plane{1}".format(fileConfig['name'],iPlane)
       c.SaveAs(saveName+".png")
       c.SaveAs(saveName+".pdf")
@@ -630,7 +634,7 @@ if __name__ == "__main__":
       h.UseCurrentStyle()
       setHistTitles(h,"Generated Kinetic Energy [MeV]","PIDA")
       h.Draw("colz")
-      drawStandardCaptions(c,"{} MC, {} events, plane {}".format(fileConfig['title'],fileConfig['nSkip'],iPlane))
+      drawStandardCaptions(c,"{} MC, {} events, plane {}".format(fileConfig['title'],fileConfig['nSkip'],iPlane),preliminaryString=PRELIMINARYSTRING)
       saveName = "PIDAVKE_{0}_plane{1}".format(fileConfig['name'],iPlane)
       c.SaveAs(saveName+".png")
       c.SaveAs(saveName+".pdf")
@@ -663,7 +667,7 @@ if __name__ == "__main__":
     for h in reversed(pipLHDiffStopsOverflown+pipLHDiffNotStopsOverflown):
       h.Draw("histsame")
     leg = drawNormalLegend(pipLHDiffStopsOverflown+pipLHDiffNotStopsOverflown,["{} MC, Stopping".format(x['title']) for x in fileConfigs]+["{} MC, Inelastic & Decay".format(x['title']) for x in fileConfigs],wide=True)
-    drawStandardCaptions(c,"Plane {}".format(iPlane))
+    drawStandardCaptions(c,"Plane {}".format(iPlane),preliminaryString=PRELIMINARYSTRING)
     saveName = "LLHREndProcess_plane{0}".format(iPlane)
     c.SaveAs(saveName+".png")
     c.SaveAs(saveName+".pdf")
@@ -690,7 +694,7 @@ if __name__ == "__main__":
     for h in reversed(PIDAHistStopsOverflown+PIDAHistNotStopsOverflown):
       h.Draw("histsame")
     leg = drawNormalLegend(PIDAHistStopsOverflown+PIDAHistNotStopsOverflown,["{} MC, Stopping".format(x['title']) for x in fileConfigs]+["{} MC, Inelastic & Decay".format(x['title']) for x in fileConfigs],wide=True)
-    drawStandardCaptions(c,"Plane {}".format(iPlane))
+    drawStandardCaptions(c,"Plane {}".format(iPlane),preliminaryString=PRELIMINARYSTRING)
     saveName = "PIDAEndProcess_plane{0}".format(iPlane)
     c.SaveAs(saveName+".png")
     c.SaveAs(saveName+".pdf")
@@ -725,7 +729,7 @@ if __name__ == "__main__":
     for h in reversed(pipLHDiffStopInts+pipLHDiffNotStopInts):
       h.Draw("histsame")
     leg = drawNormalLegend(pipLHDiffStopInts+pipLHDiffNotStopInts,["{} MC, Stopping".format(x['title']) for x in fileConfigs]+["{} MC, Inelastic & Decay".format(x['title']) for x in fileConfigs],wide=True)
-    drawStandardCaptions(c,"Plane {}".format(iPlane))
+    drawStandardCaptions(c,"Plane {}".format(iPlane),preliminaryString=PRELIMINARYSTRING)
     saveName = "LLHREndProcess_Effs_plane{0}".format(iPlane)
     c.SaveAs(saveName+".png")
     c.SaveAs(saveName+".pdf")
@@ -737,7 +741,7 @@ if __name__ == "__main__":
     for h in reversed(PIDAStopInts+PIDANotStopInts):
       h.Draw("histsame")
     leg = drawNormalLegend(PIDAStopInts+PIDANotStopInts,["{} MC, Stopping".format(x['title']) for x in fileConfigs]+["{} MC, Inelastic & Decay".format(x['title']) for x in fileConfigs],wide=True)
-    drawStandardCaptions(c,"Plane {}".format(iPlane))
+    drawStandardCaptions(c,"Plane {}".format(iPlane),preliminaryString=PRELIMINARYSTRING)
     saveName = "PIDAEndProcess_Effs_plane{0}".format(iPlane)
     c.SaveAs(saveName+".png")
     c.SaveAs(saveName+".pdf")
@@ -771,7 +775,7 @@ if __name__ == "__main__":
 
   #leg = drawNormalLegend([effVeffPlane0,effVeffPlane1],["Plane 0", "Plane 1"])
   leg = drawNormalLegend([effVeffPlane1,effVeffPlane1PIDA],["Likelihood PID", "PIDA"],position=[0.2,0.7,0.6,0.89])
-  drawStandardCaptions(c,"Plane 1")
+  drawStandardCaptions(c,"Plane 1",preliminaryString=PRELIMINARYSTRING)
   saveName = "effVeff_pip_p"
   c.SaveAs(saveName+".png")
   c.SaveAs(saveName+".pdf")
@@ -793,7 +797,7 @@ if __name__ == "__main__":
   effVeffPlane1PIDAStop.Draw("L")
 
   leg = drawNormalLegend([effVeffPlane1Stop,effVeffPlane1PIDAStop],["Likelihood PID", "PIDA"],position=[0.2,0.7,0.6,0.89])
-  drawStandardCaptions(c,"Stopping, Plane 1")
+  drawStandardCaptions(c,"Stopping, Plane 1",preliminaryString=PRELIMINARYSTRING)
   saveName = "effVeff_stop_pip_p"
   c.SaveAs(saveName+".png")
   c.SaveAs(saveName+".pdf")
@@ -815,7 +819,7 @@ if __name__ == "__main__":
   effVeffPlane1PIDANotStop.Draw("L")
 
   leg = drawNormalLegend([effVeffPlane1NotStop,effVeffPlane1PIDANotStop],["Likelihood PID", "PIDA"],position=[0.2,0.7,0.6,0.89])
-  drawStandardCaptions(c,"Inelastic & Decay, Plane 1")
+  drawStandardCaptions(c,"Inelastic & Decay, Plane 1",preliminaryString=PRELIMINARYSTRING)
   saveName = "effVeff_notstop_pip_p"
   c.SaveAs(saveName+".png")
   c.SaveAs(saveName+".pdf")
@@ -850,7 +854,7 @@ if __name__ == "__main__":
                         ["Likelihood PID Inelastic & Decay", "PIDA Inelastic & Decay",
                         "Likelihood PID Stopping", "PIDA Stopping"],
                         position=[0.2,0.7,0.6,0.89])
-  drawStandardCaptions(c,"Plane 1")
+  drawStandardCaptions(c,"Plane 1",preliminaryString=PRELIMINARYSTRING)
   saveName = "effVeff_allLines_pip_p"
   c.SaveAs(saveName+".png")
   c.SaveAs(saveName+".pdf")

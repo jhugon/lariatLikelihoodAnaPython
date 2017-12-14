@@ -2260,11 +2260,11 @@ def drawStandardCaptions(canvas,caption,captionleft1="",captionleft2="",captionl
 
   tlatex.SetTextFont(root.gStyle.GetLabelFont())
   tlatex.SetTextSize(0.04)
-  tlatex.SetTextAlign(12)
-  tlatex.DrawLatex(gStyle.GetPadLeftMargin(),0.96,preliminaryString)
+  tlatex.SetTextAlign(11)
+  tlatex.DrawLatex(gStyle.GetPadLeftMargin(),0.94,preliminaryString)
 
-  tlatex.SetTextAlign(32)
-  tlatex.DrawLatex(1.0-canvas.GetRightMargin(),0.96,caption)
+  tlatex.SetTextAlign(31)
+  tlatex.DrawLatex(1.0-canvas.GetRightMargin(),0.94,caption)
   tlatex.SetTextAlign(12)
   tlatex.SetTextColor(colorInside)
   tlatex.DrawLatex(0.02+canvas.GetLeftMargin(),0.88,captionleft1)
