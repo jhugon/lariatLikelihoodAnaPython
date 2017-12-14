@@ -17,8 +17,9 @@ if __name__ == "__main__":
     {
       #'fn': "06_34_01_v1/new_pip_v1.root",
       #'fn': "06_34_01_v2/new_pip_v2.root",
-      'fn': "06_34_01_v3/new_pip_v3.root",
+      #'fn': "06_34_01_v3/new_pip_v3.root",
       #'fn': "06_34_01_v4/new_pip_v4.root",
+      'fn': "06_34_01_v1_new/isoInTPC_pip_v1.root",
       'name': "pip",
       'title': "Isotropic #pi^{+}",
       'caption': "Isotropic #pi^{+}",
@@ -27,8 +28,9 @@ if __name__ == "__main__":
     {
       #'fn': "06_34_01_v1/new_p_v1.root",
       #'fn': "06_34_01_v2/new_p_v2.root",
-      'fn': "06_34_01_v3/new_p_v3.root",
+      #'fn': "06_34_01_v3/new_p_v3.root",
       #'fn': "06_34_01_v4/new_p_v4.root",
+      'fn': "06_34_01_v1_new/isoInTPC_p_v1.root",
       'name': "p",
       'title': "Isotropic Proton",
       'caption': "Isotropic Proton",

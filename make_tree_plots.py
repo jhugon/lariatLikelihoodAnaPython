@@ -354,8 +354,9 @@ if __name__ == "__main__":
     {
       #'fn': "06_34_01_v1/new_p_v1.root", # Small Not-smeared
       #'fn': "06_34_01_v2/new_p_v2.root", # Small Smeared
-      'fn': "06_34_01_v3/new_p_v3.root", # Large Smeared
+      #'fn': "06_34_01_v3/new_p_v3.root", # Large Smeared
       #'fn': "06_34_01_v4/new_p_v4.root", # Large Not-smeared
+      'fn': "06_34_01_v1_new/isoInTPC_p_v1.root",
       'pdg': 2212,
       'name': "p",
       'title': "p",
@@ -366,8 +367,9 @@ if __name__ == "__main__":
     {
       #'fn': "06_34_01_v1/new_pip_v1.root",
       #'fn': "06_34_01_v2/new_pip_v2.root",
-      'fn': "06_34_01_v3/new_pip_v3.root",
+      #'fn': "06_34_01_v3/new_pip_v3.root",
       #'fn': "06_34_01_v4/new_pip_v4.root",
+      'fn': "06_34_01_v1_new/isoInTPC_pip_v1.root",
       'pdg': 211,
       'name': "pip",
       'title': "#pi^{+}",
